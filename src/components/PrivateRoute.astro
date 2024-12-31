@@ -1,0 +1,16 @@
+---
+const { allowedRoles } = Astro.props;
+---
+
+<script>
+  import { getUserRole } from '../services/auth';
+
+  const token = localStorage.getItem('token');
+  const userRole = getUserRole(token);
+
+  if (!token || !allowedRoles.includes(userRole)) {
+    window.location.href = '/signin';
+  }
+</script>
+
+<slot />

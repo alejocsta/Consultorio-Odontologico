@@ -1,0 +1,68 @@
+[
+  {
+    "id": 3,
+    "diaConsulta": "2024-12-30",
+    "horaConsulta": "10:29:00",
+    "nombrePaciente": "Juan Pérez",
+    "telefonoPaciente": "1234567890",
+    "nombreMedico": "Dra. María González",
+    "problema": "Dolor de muelas",
+    "tratamiento": "Endodoncia",
+    "estado": "completada"
+  },
+  {
+    "id": 4,
+    "diaConsulta": "2024-12-31",
+    "horaConsulta": "10:29:00",
+    "nombrePaciente": "Alejo Costa",
+    "telefonoPaciente": "1234567890",
+    "nombreMedico": "Dra. María González",
+    "problema": "Dolor de muelas",
+    "tratamiento": "Endodoncia",
+    "estado": "activa"
+  },
+  {
+    "id": 5,
+    "diaConsulta": "2024-12-30",
+    "horaConsulta": "15:05",
+    "nombrePaciente": "23123593",
+    "telefonoPaciente": "1234567890",
+    "nombreMedico": "Dra. María González",
+    "problema": "fdsf",
+    "tratamiento": "dsfdsf",
+    "estado": "completada"
+  },
+  {
+    "id": 6,
+    "diaConsulta": "2024-05-15",
+    "horaConsulta": "05:32",
+    "nombrePaciente": "Pablo",
+    "telefonoPaciente": "23123593",
+    "nombreMedico": "Dra. María González",
+    "problema": "dasdfd",
+    "tratamiento": "fdsfdsf",
+    "estado": "activa"
+  },
+  {
+    "id": 7,
+    "diaConsulta": "2024-12-30",
+    "horaConsulta": "05:22",
+    "nombrePaciente": "Pablo",
+    "telefonoPaciente": "1150220157",
+    "nombreMedico": "Dra. María González",
+    "problema": "dsads",
+    "tratamiento": "sdasdsa",
+    "estado": "activa"
+  },
+  {
+    "id": 8,
+    "diaConsulta": "2024-12-31",
+    "horaConsulta": "15:05",
+    "nombrePaciente": "Alejo Costa",
+    "celularPaciente": "1150220152",
+    "nombreMedico": "Dra. María González",
+    "problema": "dfsf",
+    "tratamiento": "dsfds",
+    "estado": "completada"
+  }
+]

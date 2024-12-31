@@ -1,0 +1,262 @@
+---
+import LayoutCommon from "../app/LayoutCommon.astro";
+
+interface Consulta {
+  id: string;
+  diaConsulta: string;
+  horaConsulta: string;
+  nombrePaciente: string;
+  nombreMedico: string;
+  problema: string;
+  tratamiento: string;
+  estado: 'activa' | 'en_proceso' | 'completada';
+}
+
+// Obtener datos del paciente
+async function obtenerPacientes() {
+  try {
+    const response = await fetch('/api/pacientes');
+    return await response.json();
+  } catch (error) {
+    console.error('Error al cargar pacientes:', error);
+    return [];
+  }
+}
+
+// Obtener datos de médicos
+async function obtenerMedicos() {
+  try {
+    const response = await fetch('/api/medicos');
+    return await response.json();
+  } catch (error) {
+    console.error('Error al cargar médicos:', error);
+    return [];
+  }
+}
+
+// Función para obtener los detalles de una consulta específica
+async function obtenerDetallesConsulta(id: string) {
+  try {
+    const response = await fetch(`/api/citas/${id}`);
+    if (!response.ok) throw new Error('Consulta no encontrada');
+    return await response.json();
+  } catch (error) {
+    console.error('Error al obtener consulta:', error);
+    return null;
+  }
+}
+
+const { id } = Astro.props;
+const consulta = await obtenerDetallesConsulta(id);
+const pacientes = await obtenerPacientes();
+const medicos = await obtenerMedicos();
+---
+
+<LayoutCommon>
+  <div class="min-h-screen bg-gradient-to-r from-slate-100 to-slate-200 p-4 text-slate-800 dark:from-slate-900 dark:to-slate-800 dark:text-slate-100 lg:p-16">
+    <div class="mx-auto max-w-4xl">
+      <div class="mb-8">
+        <button id="volverBtn" class="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+          ← Volver a citas
+        </button>
+      </div>
+
+      <div class="rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+        <h1 class="mb-6 text-2xl font-bold">Editar Cita</h1>
+        
+        <!-- Formulario para editar cita -->
+        <form id="editarConsultaForm" class="space-y-6">
+          <input type="hidden" id="consultaId" name="id" value={consulta?.id}>
+          
+          <div class="space-y-4">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <label for="nombrePaciente" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Nombre del Paciente
+                </label>
+                <select
+                  id="nombrePaciente"
+                  name="nombrePaciente"
+                  required
+                  class="mt-1 w-full rounded-md border border-gray-300 bg-white p-2 dark:border-gray-600 dark:bg-gray-700 focus:border-blue-500 focus:ring-blue-500"
+                >
+                  <option value="">Seleccione un paciente</option>
+                  {pacientes.map((paciente) => (
+                    <option 
+                      value={paciente.dni} 
+                      selected={consulta?.nombrePaciente === paciente.name}
+                    >
+                      {paciente.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+        
+              <div>
+                <label for="nombreMedico" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Médico
+                </label>
+                <select
+                  id="nombreMedico"
+                  name="nombreMedico"
+                  required
+                  class="mt-1 w-full rounded-md border border-gray-300 bg-white p-2 dark:border-gray-600 dark:bg-gray-700 focus:border-blue-500 focus:ring-blue-500"
+                >
+                  <option value="">Seleccione un médico</option>
+                  {medicos.map((medico) => (
+                    <option 
+                      value={medico.nombre} 
+                      selected={consulta?.nombreMedico === `${medico.nombre} - ${medico.especialidad}`}
+                    >
+                      {medico.nombre} - {medico.especialidad}
+                    </option>
+                  ))}
+                </select>
+              </div>
+        
+              <div>
+                <label for="diaConsulta" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Día de Cita
+                </label>
+                <input
+                  type="date"
+                  id="diaConsulta"
+                  name="diaConsulta"
+                  value={consulta?.diaConsulta}
+                  required
+                  class="mt-1 w-full rounded-md border border-gray-300 bg-white p-2 dark:border-gray-600 dark:bg-gray-700"
+                />
+              </div>
+        
+              <div>
+                <label for="horaConsulta" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Hora de Consulta
+                </label>
+                <input
+                  type="time"
+                  id="horaConsulta"
+                  name="horaConsulta"
+                  value={consulta?.horaConsulta}
+                  required
+                  class="mt-1 w-full rounded-md border border-gray-300 bg-white p-2 dark:border-gray-600 dark:bg-gray-700"
+                />
+              </div>
+            </div>
+        
+            <div>
+              <label for="problema" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Problema
+              </label>
+              <textarea
+                id="problema"
+                name="problema"
+                rows="3"
+                required
+                class="mt-1 w-full rounded-md border border-gray-300 bg-white p-2 dark:border-gray-600 dark:bg-gray-700"
+              >{consulta?.problema}</textarea>
+            </div>
+        
+            <div>
+              <label for="tratamiento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Tratamiento
+              </label>
+              <textarea
+                id="tratamiento"
+                name="tratamiento"
+                rows="3"
+                required
+                class="mt-1 w-full rounded-md border border-gray-300 bg-white p-2 dark:border-gray-600 dark:bg-gray-700"
+              >{consulta?.tratamiento}</textarea>
+            </div>
+
+            <div>
+              <label for="estado" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Estado
+              </label>
+              <select
+                id="estado"
+                name="estado"
+                required
+                class="mt-1 w-full rounded-md border border-gray-300 bg-white p-2 dark:border-gray-600 dark:bg-gray-700"
+              >
+                <option value="activa" selected={consulta?.estado === 'activa'}>Activa</option>
+                <option value="en_proceso" selected={consulta?.estado === 'en_proceso'}>En Proceso</option>
+                <option value="completada" selected={consulta?.estado === 'completada'}>Completada</option>
+              </select>
+            </div>
+          </div>
+        
+          <div class="flex justify-end space-x-4">
+            <button
+              type="button"
+              id="cancelarBtn"
+              class="rounded-lg bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              class="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+            >
+              Guardar Cambios
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</LayoutCommon>
+
+<script>
+  const form = document.getElementById('editarConsultaForm');
+  const volverBtn = document.getElementById('volverBtn');
+  const cancelarBtn = document.getElementById('cancelarBtn');
+
+  // Event listener para el formulario
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(form as HTMLFormElement);
+    const consultaData = {
+      id: formData.get('id'),
+      diaConsulta: formData.get('diaConsulta'),
+      horaConsulta: formData.get('horaConsulta'),
+      nombrePaciente: formData.get('nombrePaciente'),
+      nombreMedico: formData.get('nombreMedico'),
+      problema: formData.get('problema'),
+      tratamiento: formData.get('tratamiento'),
+      estado: formData.get('estado')
+    };
+
+    try {
+      const response = await fetch(`/api/citas/${consultaData.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(consultaData)
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al actualizar la consulta');
+      }
+
+      window.location.href = '/citasTable';
+      alert('Consulta actualizada exitosamente');
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error al actualizar la consulta');
+    }
+  });
+
+  // Event listeners para los botones
+  volverBtn?.addEventListener('click', () => {
+    window.location.href = '/citasTable';
+  });
+
+  cancelarBtn?.addEventListener('click', () => {
+    if (confirm('¿Está seguro que desea cancelar? Se perderán los cambios.')) {
+      window.location.href = '/citasTable';
+    }
+  });
+</script>

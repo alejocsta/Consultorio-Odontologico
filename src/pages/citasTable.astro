@@ -1,0 +1,442 @@
+---
+import LayoutCommon from "../app/LayoutCommon.astro";
+
+interface Consulta {
+  id: number;
+  diaConsulta: string;
+  horaConsulta: string;
+  nombrePaciente: string;
+  nombreMedico: string;
+  problema: string;
+  tratamiento: string;
+  estado: 'activa' | 'en_proceso' | 'completada';
+}
+
+const obtenerConsultas = async () => {
+  try {
+    const response = await fetch('/api/citas');
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error al obtener consultas:', error);
+    return [];
+  }
+};
+---
+
+<LayoutCommon>
+  <div class="min-h-screen bg-gradient-to-r from-slate-100 to-slate-200 p-4 text-slate-800 dark:from-slate-900 dark:to-slate-800 dark:text-slate-100 lg:p-16">
+    <div class="mx-auto max-w-6xl">
+      <!-- Header -->
+      <div class="mb-6 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <button id="volverBtn" class="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+            ← Volver al inicio
+          </button>
+          <h1 class="text-2xl font-bold">Citas Odontológicas</h1>
+        </div>
+        <button id="nuevaConsultaBtn" class="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
+          Nueva Cita
+        </button>
+      </div>
+
+      <!-- Filtros y Búsqueda -->
+      <div class="mb-6 grid gap-4 md:grid-cols-3">
+        <div class="space-y-2">
+          <label for="searchInput" class="block text-sm font-medium">Buscar</label>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Buscar por nombre o ID..."
+            class="w-full rounded-lg border border-gray-300 p-2 dark:border-gray-600 dark:bg-gray-700"
+          />
+        </div>
+        
+        <div class="space-y-2">
+          <label for="estadoFilter" class="block text-sm font-medium">Estado</label>
+          <select
+            id="estadoFilter"
+            class="w-full rounded-lg border border-gray-300 p-2 dark:border-gray-600 dark:bg-gray-700"
+          >
+            <option value="">Todos</option>
+            <option value="activa">Activa</option>
+            <option value="en_proceso">En Proceso</option>
+            <option value="completada">Completada</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Tabla de Consultas -->
+      <div class="overflow-x-auto rounded-lg bg-white shadow-xl dark:bg-gray-800">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead class="bg-gray-50 dark:bg-gray-700">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">ID</th>
+              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">Fecha</th>
+              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">Hora</th>
+              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">Paciente</th>
+              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">Médico</th>
+              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">Problema</th>
+              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">Estado</th>
+              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="consultasTableBody" class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
+            <!-- Se llena dinámicamente -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Edición -->
+  <div id="editModal" class="fixed inset-0 flex items-center justify-center z-50 hidden">
+    <div class="absolute inset-0 bg-black opacity-50"></div>
+    <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-1/2">
+      <h2 class="text-lg font-bold text-gray-800 dark:text-gray-100 mb-4">Editar Cita</h2>
+      <form id="editForm" class="space-y-4">
+        <input type="hidden" name="id" />
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Día de Cita</label>
+            <input
+              type="date"
+              name="diaConsulta"
+              required
+              class="mt-1 w-full rounded-md border border-gray-300 bg-white p-2 dark:border-gray-600 dark:bg-gray-700 text-black dark:text-white"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Hora de Consulta</label>
+            <input
+              type="time"
+              name="horaConsulta"
+              required
+              class="mt-1 w-full rounded-md border border-gray-300 bg-white p-2 dark:border-gray-600 dark:bg-gray-700 text-black dark:text-white"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Paciente</label>
+            <select
+              name="nombrePaciente"
+              required
+              class="mt-1 w-full rounded-md border border-gray-300 bg-white p-2 dark:border-gray-600 dark:bg-gray-700 text-black dark:text-white"
+            >
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Médico</label>
+            <select
+              name="nombreMedico"
+              required
+              class="mt-1 w-full rounded-md border border-gray-300 bg-white p-2 dark:border-gray-600 dark:bg-gray-700 text-black dark:text-white"
+            >
+            </select>
+          </div>
+          <div class="col-span-2">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Problema</label>
+            <textarea
+              name="problema"
+              rows="3"
+              required
+              class="mt-1 w-full rounded-md border border-gray-300 bg-white p-2 dark:border-gray-600 dark:bg-gray-700 text-black dark:text-white"
+            ></textarea>
+          </div>
+          <div class="col-span-2">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tratamiento</label>
+            <textarea
+              name="tratamiento"
+              rows="3"
+              required
+              class="mt-1 w-full rounded-md border border-gray-300 bg-white p-2 dark:border-gray-600 dark:bg-gray-700 text-black dark:text-white"
+            ></textarea>
+          </div>
+        </div>
+        <div class="flex justify-end space-x-4">
+          <button 
+            type="button" 
+            onclick="closeEditModal()"
+            class="px-4 py-2 text-sm font-medium text-white bg-gray-600 rounded-lg hover:bg-gray-700"
+          >
+            Cancelar
+          </button>
+          <button 
+            type="submit" 
+            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+          >
+            Guardar Cambios
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</LayoutCommon>
+
+<script>
+  interface Consulta {
+    id: number;
+    diaConsulta: string;
+    horaConsulta: string;
+    nombrePaciente: string;
+    nombreMedico: string;
+    problema: string;
+    tratamiento: string;
+    estado: 'activa' | 'en_proceso' | 'completada';
+  }
+
+  let consultas: Consulta[] = [];
+  let consultasFiltradas: Consulta[] = [];
+
+  // Funciones de utilidad
+  function showNotification(message: string, type: 'success' | 'error' = 'success') {
+    alert(message);
+  }
+
+  function getEstadoClase(estado: string): string {
+    const clases = {
+      activa: 'bg-yellow-100 text-yellow-800',
+      en_proceso: 'bg-blue-100 text-blue-800',
+      completada: 'bg-green-100 text-green-800'
+    };
+    return clases[estado as keyof typeof clases] || '';
+  }
+
+  // Funciones principales
+  async function cargarConsultas() {
+    try {
+      const response = await fetch('/api/citas');
+      consultas = await response.json();
+      consultasFiltradas = [...consultas];
+      renderizarTabla();
+    } catch (error) {
+      console.error('Error al cargar consultas:', error);
+      showNotification('Error al cargar las consultas', 'error');
+    }
+  }
+
+  function renderizarTabla() {
+    const tbody = document.getElementById('consultasTableBody');
+    if (!tbody) return;
+
+    tbody.innerHTML = consultasFiltradas.map(consulta => `
+      <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+        <td class="whitespace-nowrap px-6 py-4">${consulta.id}</td>
+        <td class="whitespace-nowrap px-6 py-4">${consulta.diaConsulta}</td>
+        <td class="whitespace-nowrap px-6 py-4">${consulta.horaConsulta}</td>
+        <td class="whitespace-nowrap px-6 py-4">${consulta.nombrePaciente}</td>
+        <td class="whitespace-nowrap px-6 py-4">${consulta.nombreMedico}</td>
+        <td class="whitespace-nowrap px-6 py-4">${consulta.problema}</td>
+        <td class="whitespace-nowrap px-6 py-4">
+          <span class="rounded-full px-2 py-1 text-xs font-semibold ${getEstadoClase(consulta.estado)}">
+            ${consulta.estado}
+          </span>
+        </td>
+        <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+          <div class="flex space-x-2">
+            <button 
+              onclick="openEditModal(${JSON.stringify(consulta).replace(/"/g, '&quot;')})"
+              class="edit-button p-2 text-blue-600 hover:text-blue-700 focus:outline-none"
+              title="Editar"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+            </button>
+            <button
+              onclick="eliminarCita(${consulta.id})"
+              class="delete-button p-2 text-red-600 hover:text-red-700 focus:outline-none"
+              title="Eliminar"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 6h18"></path>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function filtrarConsultas() {
+    const searchTerm = (document.getElementById('searchInput') as HTMLInputElement)?.value.toLowerCase();
+    const estadoFilter = (document.getElementById('estadoFilter') as HTMLSelectElement)?.value;
+
+    consultasFiltradas = consultas.filter(consulta => {
+      const cumpleBusqueda = !searchTerm || 
+        consulta.nombrePaciente.toLowerCase().includes(searchTerm) || 
+        consulta.nombreMedico.toLowerCase().includes(searchTerm) || 
+        consulta.id.toString().includes(searchTerm);
+      
+      const cumpleEstado = !estadoFilter || consulta.estado === estadoFilter;
+
+      return cumpleBusqueda && cumpleEstado;
+    });
+
+    renderizarTabla();
+  }
+
+  async function eliminarCita(id: number) {
+    if (!confirm('¿Está seguro que desea eliminar esta cita? Esta acción no se puede deshacer.')) {
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/eliminar-cita', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id })
+      });
+
+      const data = await response.json();
+			if (!response.ok) {
+        throw new Error(data.message || 'Error al eliminar la cita');
+      }
+
+      consultas = consultas.filter(consulta => consulta.id !== id);
+      consultasFiltradas = consultasFiltradas.filter(consulta => consulta.id !== id);
+      renderizarTabla();
+      showNotification('Cita eliminada exitosamente');
+    } catch (error) {
+      console.error('Error:', error);
+      showNotification('Error al eliminar la cita: ' + (error instanceof Error ? error.message : 'Error desconocido'), 'error');
+    }
+  }
+
+  async function cargarSelectores() {
+    try {
+      const [responsePacientes, responseMedicos] = await Promise.all([
+        fetch('/api/pacientes'),
+        fetch('/api/medicos')
+      ]);
+
+      const pacientes = await responsePacientes.json();
+      const medicos = await responseMedicos.json();
+
+      const selectPaciente = document.querySelector('select[name="nombrePaciente"]') as HTMLSelectElement;
+      const selectMedico = document.querySelector('select[name="nombreMedico"]') as HTMLSelectElement;
+      
+      if (selectPaciente) {
+        selectPaciente.innerHTML = pacientes.map((p: any) => 
+          `<option value="${p.name}">${p.name}</option>`
+        ).join('');
+      }
+
+      if (selectMedico) {
+        selectMedico.innerHTML = medicos.map((m: any) => 
+          `<option value="${m.nombre}">${m.nombre} - ${m.especialidad}</option>`
+        ).join('');
+      }
+    } catch (error) {
+      console.error('Error al cargar selectores:', error);
+      showNotification('Error al cargar los datos', 'error');
+    }
+  }
+
+  async function openEditModal(cita: Consulta) {
+    const modal = document.getElementById('editModal');
+    const form = document.getElementById('editForm') as HTMLFormElement;
+    
+    await cargarSelectores();
+    modal?.classList.remove('hidden');
+    
+    if (form) {
+      Object.entries(cita).forEach(([key, value]) => {
+        const element = form.elements.namedItem(key) as HTMLInputElement | null;
+        if (element) {
+          element.value = value.toString();
+        }
+      });
+    }
+  }
+
+  function closeEditModal() {
+    const modal = document.getElementById('editModal');
+    const form = document.getElementById('editForm');
+    
+    modal?.classList.add('hidden');
+    form?.reset();
+  }
+
+  async function handleEditFormSubmit(e: SubmitEvent) {
+    e.preventDefault();
+    const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
+      
+    const citaData = {
+      id: parseInt(formData.get('id') as string),
+      diaConsulta: formData.get('diaConsulta'),
+      horaConsulta: formData.get('horaConsulta'),
+      nombrePaciente: formData.get('nombrePaciente'),
+      nombreMedico: formData.get('nombreMedico'),
+      problema: formData.get('problema'),
+      tratamiento: formData.get('tratamiento'),
+      estado: 'activa'
+    };
+
+    try {
+      const response = await fetch('/api/actualizar-cita', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(citaData)
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al actualizar la cita');
+      }
+
+      consultas = consultas.map(c => c.id === citaData.id ? citaData : c);
+      consultasFiltradas = consultasFiltradas.map(c => c.id === citaData.id ? citaData : c);
+      
+      renderizarTabla();
+      closeEditModal();
+      showNotification('Cita actualizada exitosamente');
+    } catch (error) {
+      console.error('Error:', error);
+      showNotification('Error al actualizar la cita', 'error');
+    }
+  }
+
+  // Inicialización
+  function setupEventListeners() {
+    document.getElementById('searchInput')?.addEventListener('input', filtrarConsultas);
+    document.getElementById('estadoFilter')?.addEventListener('change', filtrarConsultas);
+    
+    document.getElementById('nuevaConsultaBtn')?.addEventListener('click', () => {
+      window.location.href = '/nueva-cita';
+    });
+    
+    document.getElementById('volverBtn')?.addEventListener('click', () => {
+      window.location.href = '/';
+    });
+
+    document.getElementById('editForm')?.addEventListener('submit', handleEditFormSubmit);
+
+    // Manejo del modal
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeEditModal();
+    });
+
+    document.addEventListener('click', (e) => {
+      const modal = document.getElementById('editModal');
+      if (e.target === modal) closeEditModal();
+    });
+  }
+
+  // Exponer funciones necesarias globalmente
+  window.eliminarCita = eliminarCita;
+  window.openEditModal = openEditModal;
+  window.closeEditModal = closeEditModal;
+
+  // Inicializar
+  document.addEventListener('DOMContentLoaded', () => {
+    cargarConsultas();
+    setupEventListeners();
+  });
+</script>

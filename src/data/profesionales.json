@@ -1,0 +1,11 @@
+[
+	{
+			"nombre": "Alejo Costa",
+			"dni": "44749052",
+			"telefono": "1150220157",
+			"especialidad": "Odontología",
+			"genero": "Masculino",
+			"pacientes": 25,
+			"tratamientos": 12
+	}
+]

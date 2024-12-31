@@ -1,0 +1,86 @@
+---
+import LayoutCommon from "../app/LayoutCommon.astro";
+import tratamientos from '../data/tratamientos.json';
+---
+
+<script>
+  let listaTratamientos = [...tratamientos];
+
+  function actualizarTabla() {
+    const tbody = document.querySelector('tbody');
+    if (!tbody) return;
+
+    tbody.innerHTML = listaTratamientos.map(tratamiento => `
+      <tr>
+        <td class="border px-4 py-2">${tratamiento.id}</td>
+        <td class="border px-4 py-2">${tratamiento.nombre}</td>
+        <td class="border px-4 py-2">${tratamiento.descripcion}</td>
+        <td class="border px-4 py-2">
+          <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" data-id="${tratamiento.id}">Editar</button>
+          <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" data-id="${tratamiento.id}">Eliminar</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function agregarTratamiento() {
+    const nuevoTratamiento = {
+      id: listaTratamientos.length + 1,
+      nombre: 'Nuevo Tratamiento',
+      descripcion: 'Descripción del nuevo tratamiento'
+    };
+    listaTratamientos.push(nuevoTratamiento);
+    actualizarTabla();
+  }
+
+  function editarTratamiento(id) {
+    // Lógica para editar el tratamiento
+  }
+
+  function eliminarTratamiento(id) {
+    listaTratamientos = listaTratamientos.filter(t => t.id !== id);
+    actualizarTabla();
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    actualizarTabla();
+
+    document.getElementById('agregar-btn')?.addEventListener('click', agregarTratamiento);
+
+    document.querySelector('tbody')?.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'BUTTON') {
+        const id = parseInt(target.dataset.id!);
+        if (target.textContent === 'Editar') {
+          editarTratamiento(id);
+        } else if (target.textContent === 'Eliminar') {
+          eliminarTratamiento(id);
+        }
+      }
+    });
+  });
+</script>
+
+<LayoutCommon>
+  <div class="p-4">
+    <h1 class="text-2xl font-bold mb-4">Tratamientos</h1>
+    
+    <button id="agregar-btn" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mb-4">
+      Agregar Tratamiento
+    </button>
+    
+    <table class="table-auto w-full">
+      <thead>
+        <tr>
+          <th class="border px-4 py-2">ID</th>
+          <th class="border px-4 py-2">Nombre</th>
+          <th class="border px-4 py-2">Descripción</th>
+          <th class="border px-4 py-2">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Filas de tratamientos generadas dinámicamente -->
+      </tbody>
+    </table>
+  </div>
+</LayoutCommon>

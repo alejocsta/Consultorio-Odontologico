@@ -1,0 +1,30 @@
+---
+// src/components/SearchBar.astro
+---
+
+<div class="mb-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+  <div class="space-y-2">
+    <label for="searchInput" class="block text-sm font-medium">
+      Buscar Paciente
+    </label>
+    <input
+      type="text"
+      id="searchInput"
+      placeholder="Buscar por nombre, DNI o email..."
+      class="w-full rounded-lg border border-gray-300 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+    />
+  </div>
+</div>
+
+<script>
+  const searchInput = document.getElementById('searchInput');
+  
+  searchInput?.addEventListener('input', () => {
+    const event = new CustomEvent('patient:search', {
+      detail: {
+        searchTerm: (searchInput as HTMLInputElement).value
+      }
+    });
+    document.dispatchEvent(event);
+  });
+</script>

@@ -1,0 +1,213 @@
+---
+import LayoutCommon from "../app/LayoutCommon.astro";
+import tratamientos from '../data/tratamientos.json';
+---
+
+<LayoutCommon>
+  <div class="min-h-screen bg-gradient-to-r from-slate-100 to-slate-200 p-4 text-slate-800 dark:from-slate-900 dark:to-slate-800 dark:text-slate-100 lg:p-16">
+    <div class="mx-auto max-w-6xl">
+      <div class="mb-6 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <button id="volverBtn" class="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+            ← Volver al inicio
+          </button>
+          <h1 class="text-2xl font-bold">Tratamientos</h1>
+        </div>
+        <button 
+          id="agregar-btn"
+          class="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 focus:ring-2 focus:ring-green-300 dark:focus:ring-green-900 transition-colors duration-200"
+        >
+          Agregar Tratamiento
+        </button>
+      </div>
+
+      <!-- Buscador -->
+			<div class="mb-6 grid gap-4">
+				<div class="w-1/3 space-y-2">
+					<label for="searchInput" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+						Buscar Tratamiento
+					</label>
+					<div class="relative">
+						<input
+							type="text"
+							id="searchInput"
+							placeholder="Buscar por nombre o descripción..."
+							class="w-full rounded-lg border border-gray-300 p-2 pl-10 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+						/>
+						<span class="absolute left-3 top-2.5 text-gray-400">
+							<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+								<circle cx="11" cy="11" r="8"></circle>
+								<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+							</svg>
+						</span>
+					</div>
+				</div>
+			</div>
+      
+      <div class="overflow-x-auto rounded-lg bg-white shadow-xl dark:bg-gray-800">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead class="bg-gray-100 dark:bg-gray-700">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">ID</th>
+              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">Nombre</th>
+              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">Descripción</th>
+              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
+            {tratamientos.map((tratamiento) => (
+              <tr class="hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-150">
+                <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">{tratamiento.id}</td>
+                <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">{tratamiento.nombreTratamiento}</td>
+                <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">{tratamiento.descripcion}</td>
+                <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+                  <div class="flex space-x-2">
+                    <button 
+                      class="edit-button p-2 text-blue-600 hover:text-blue-700 focus:outline-none"
+                      data-id={tratamiento.id}
+                      title="Editar"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                      </svg>
+                    </button>
+                    <button
+                      class="delete-button p-2 text-red-600 hover:text-red-700 focus:outline-none"
+                      data-id={tratamiento.id}
+                      title="Eliminar" 
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 6h18"></path>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+                        <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</LayoutCommon>
+
+<script define:vars={{ tratamientos }}>
+  let listaTratamientos = [...tratamientos];
+  let tratamientosFiltrados = [...tratamientos];
+
+  function actualizarTabla() {
+    const tbody = document.querySelector('tbody');
+    if (!tbody) return;
+
+    tbody.innerHTML = tratamientosFiltrados.map(tratamiento => `
+      <tr class="hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-150">
+        <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">${tratamiento.id}</td>
+        <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">${tratamiento.nombreTratamiento}</td>
+        <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">${tratamiento.descripcion}</td>
+        <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+          <div class="flex space-x-2">
+            <button 
+              class="edit-button p-2 text-blue-600 hover:text-blue-700 focus:outline-none"
+              data-id="${tratamiento.id}"
+              title="Editar"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+            </button>
+            <button
+              class="delete-button p-2 text-red-600 hover:text-red-700 focus:outline-none"
+              data-id="${tratamiento.id}"
+              title="Eliminar" 
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 6h18"></path>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function filtrarTratamientos(searchTerm) {
+    const termino = searchTerm.toLowerCase().trim();
+    
+    if (!termino) {
+      tratamientosFiltrados = [...listaTratamientos];
+    } else {
+      tratamientosFiltrados = listaTratamientos.filter(tratamiento => 
+        tratamiento.nombreTratamiento.toLowerCase().includes(termino) ||
+        tratamiento.descripcion.toLowerCase().includes(termino) ||
+        tratamiento.id.toString().includes(termino)
+      );
+    }
+    
+    actualizarTabla();
+  }
+
+  async function handleDelete(button) {
+    const id = button.getAttribute('data-id');
+    if (!id) return;
+
+    if (confirm('¿Está seguro que desea eliminar este tratamiento? Esta acción no se puede deshacer.')) {
+      try {
+        button.disabled = true;
+        
+        const response = await fetch('/api/eliminar-tratamiento', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ id: parseInt(id) })
+        });
+
+        if (!response.ok) {
+          throw new Error('Error al eliminar el tratamiento');
+        }
+
+        window.location.reload();
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error al eliminar el tratamiento');
+        button.disabled = false;
+      }
+    }
+  }
+
+  function handleEdit(button) {
+    const id = button.getAttribute('data-id');
+    if (!id) return;
+    window.location.href = `/editar-tratamiento?id=${id}`;
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    actualizarTabla();
+
+    const searchInput = document.getElementById('searchInput');
+    searchInput?.addEventListener('input', (e) => {
+      filtrarTratamientos(e.target.value);
+    });
+
+    document.addEventListener('click', (e) => {
+      const target = e.target.closest('button');
+      if (!target) return;
+
+      if (target.id === 'volverBtn') {
+        window.location.href = '/';
+      } else if (target.id === 'agregar-btn') {
+        window.location.href = '/nuevo-tratamiento';
+      } else if (target.classList.contains('delete-button')) {
+        handleDelete(target);
+      } else if (target.classList.contains('edit-button')) {
+        handleEdit(target);
+      }
+    });
+  });
+</script>

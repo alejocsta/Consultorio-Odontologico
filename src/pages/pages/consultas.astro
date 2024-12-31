@@ -1,0 +1,15 @@
+// Crear el directorio data si no existe
+const dataDir = path.join(process.cwd(), 'src', 'data');
+try {
+  await fs.access(dataDir);
+} catch {
+  await fs.mkdir(dataDir, { recursive: true });
+}
+
+// Crear el archivo consultas.json si no existe
+const consultasPath = path.join(dataDir, 'citas.json');
+try {
+  await fs.access(consultasPath);
+} catch {
+  await fs.writeFile(consultasPath, '[]', 'utf-8');
+}
