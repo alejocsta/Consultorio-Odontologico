@@ -143,14 +143,14 @@ const obtenerConsultas = async () => {
             ></textarea>
           </div>
           <div class="col-span-2">
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tratamiento</label>
-            <textarea
-              name="tratamiento"
-              rows="3"
-              required
-              class="mt-1 w-full rounded-md border border-gray-300 bg-white p-2 dark:border-gray-600 dark:bg-gray-700 text-black dark:text-white"
-            ></textarea>
-          </div>
+						<label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tratamiento</label>
+						<select
+							name="tratamiento"
+							required
+							class="mt-1 w-full rounded-md border border-gray-300 bg-white p-2 dark:border-gray-600 dark:bg-gray-700 text-black dark:text-white"
+						>
+						</select>
+					</div>
         </div>
         <div class="flex justify-end space-x-4">
           <button 
@@ -308,34 +308,43 @@ const obtenerConsultas = async () => {
   }
 
   async function cargarSelectores() {
-    try {
-      const [responsePacientes, responseMedicos] = await Promise.all([
-        fetch('/api/pacientes'),
-        fetch('/api/medicos')
-      ]);
+  try {
+    const [responsePacientes, responseMedicos, responseTratamientos] = await Promise.all([
+      fetch('/api/pacientes'),
+      fetch('/api/medicos'),
+      fetch('/api/tratamientos')
+    ]);
 
-      const pacientes = await responsePacientes.json();
-      const medicos = await responseMedicos.json();
+    const pacientes = await responsePacientes.json();
+    const medicos = await responseMedicos.json();
+    const tratamientos = await responseTratamientos.json();
 
-      const selectPaciente = document.querySelector('select[name="nombrePaciente"]') as HTMLSelectElement;
-      const selectMedico = document.querySelector('select[name="nombreMedico"]') as HTMLSelectElement;
-      
-      if (selectPaciente) {
-        selectPaciente.innerHTML = pacientes.map((p: any) => 
-          `<option value="${p.name}">${p.name}</option>`
-        ).join('');
-      }
-
-      if (selectMedico) {
-        selectMedico.innerHTML = medicos.map((m: any) => 
-          `<option value="${m.nombre}">${m.nombre} - ${m.especialidad}</option>`
-        ).join('');
-      }
-    } catch (error) {
-      console.error('Error al cargar selectores:', error);
-      showNotification('Error al cargar los datos', 'error');
+    const selectPaciente = document.querySelector('select[name="nombrePaciente"]') as HTMLSelectElement;
+    const selectMedico = document.querySelector('select[name="nombreMedico"]') as HTMLSelectElement;
+    const selectTratamiento = document.querySelector('select[name="tratamiento"]') as HTMLSelectElement;
+    
+    if (selectPaciente) {
+      selectPaciente.innerHTML = pacientes.map((p: any) => 
+        `<option value="${p.name}">${p.name}</option>`
+      ).join('');
     }
+
+    if (selectMedico) {
+      selectMedico.innerHTML = medicos.map((m: any) => 
+        `<option value="${m.nombre}">${m.nombre} - ${m.especialidad}</option>`
+      ).join('');
+    }
+
+    if (selectTratamiento) {
+      selectTratamiento.innerHTML = tratamientos.map((t: any) => 
+        `<option value="${t.nombreTratamiento}">${t.nombreTratamiento}</option>`
+      ).join('');
+    }
+  } catch (error) {
+    console.error('Error al cargar selectores:', error);
+    showNotification('Error al cargar los datos', 'error');
   }
+}
 
   async function openEditModal(cita: Consulta) {
     const modal = document.getElementById('editModal');
@@ -363,20 +372,20 @@ const obtenerConsultas = async () => {
   }
 
   async function handleEditFormSubmit(e: SubmitEvent) {
-    e.preventDefault();
-    const form = e.target as HTMLFormElement;
-    const formData = new FormData(form);
-      
-    const citaData = {
-      id: parseInt(formData.get('id') as string),
-      diaConsulta: formData.get('diaConsulta'),
-      horaConsulta: formData.get('horaConsulta'),
-      nombrePaciente: formData.get('nombrePaciente'),
-      nombreMedico: formData.get('nombreMedico'),
-      problema: formData.get('problema'),
-      tratamiento: formData.get('tratamiento'),
-      estado: 'activa'
-    };
+  e.preventDefault();
+  const form = e.target as HTMLFormElement;
+  const formData = new FormData(form);
+    
+  const citaData = {
+    id: parseInt(formData.get('id') as string),
+    diaConsulta: formData.get('diaConsulta'),
+    horaConsulta: formData.get('horaConsulta'),
+    nombrePaciente: formData.get('nombrePaciente'),
+    nombreMedico: formData.get('nombreMedico'),
+    problema: formData.get('problema'),
+    tratamiento: formData.get('tratamiento'),
+    estado: 'activa'
+  };
 
     try {
       const response = await fetch('/api/actualizar-cita', {

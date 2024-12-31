@@ -9,13 +9,24 @@ export const POST: APIRoute = async ({ request }) => {
     console.log('Datos recibidos en el servidor:', consultaData);
 
     // Validar datos requeridos
-    const requiredFields = ['id', 'diaConsulta', 'horaConsulta', 'nombrePaciente', 'nombreMedico', 'problema', 'tratamiento'];
+    const requiredFields = ['id', 'diaConsulta', 'horaConsulta', 'nombrePaciente', 'nombreMedico', 'problema', 'tratamientos'];
     const missingFields = requiredFields.filter(field => !consultaData[field]);
     
     if (missingFields.length > 0) {
       return new Response(JSON.stringify({
         success: false,
         message: `Faltan campos requeridos: ${missingFields.join(', ')}`
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Verificar que tratamientos sea un array
+    if (!Array.isArray(consultaData.tratamientos)) {
+      return new Response(JSON.stringify({
+        success: false,
+        message: 'El campo tratamientos debe ser un array'
       }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }

@@ -3,176 +3,213 @@ import consultasData from '../data/citas.json';
 ---
 
 <div class="bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-800 text-slate-800 dark:text-slate-100 mb-20 p-4 lg:p-16 shadow-xl shadow-slate-200 dark:shadow-slate-900 min-h-screen flex items-center justify-center">
-    <header class="p-8 flex flex-col items-center w-full space-y-8">
-        <h1 class="text-4xl lg:text-5xl dark:text-slate-200 text-slate-600 leading-tight text-center">
-            Citas del día
-        </h1>
-        <div id="cards-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Las tarjetas serán añadidas aquí dinámicamente -->
-        </div>
-    </header>
+  <header class="p-8 flex flex-col items-center w-full space-y-8">
+    <h1 class="text-4xl lg:text-5xl dark:text-slate-200 text-slate-600 leading-tight text-center">
+      Citas del día
+    </h1>
+    <div id="cards-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Las tarjetas serán añadidas aquí dinámicamente -->
+    </div>
+  </header>
 </div>
 
 <script define:vars={{ consultasData }}>
-    const container = document.getElementById("cards-container");
+  const container = document.getElementById("cards-container");
 
-    function formatTime(timeString) {
-        const [hours, minutes] = timeString.split(':');
-        return `${hours}:${minutes}`;
-    }
+  function formatTime(timeString) {
+    const [hours, minutes] = timeString.split(':');
+    return `${hours}:${minutes}`;
+  }
 
-    function getCurrentDateString() {
-        const today = new Date();
-        return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-    }
+  function getCurrentDateString() {
+    const today = new Date();
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  }
 
-    function isToday(dateString) {
-        return dateString === getCurrentDateString();
-    }
+  function isToday(dateString) {
+    return dateString === getCurrentDateString();
+  }
 
-    function getEstadoColor(estado) {
-        const colores = {
-            'activa': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-            'en_proceso': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-            'completada': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-        };
-        return colores[estado] || colores['activa'];
-    }
-
-    function getEstadoTexto(estado) {
-        const textos = {
-            'activa': 'Activa',
-            'en_proceso': 'En Proceso',
-            'completada': 'Completada'
-        };
-        return textos[estado] || 'Activa';
-    }
-
-    function getWhatsAppLink(telefono, nombrePaciente, nombreMedico, hora) {
-      const mensaje = encodeURIComponent(`Hola, Te habla ${nombreMedico} del consultorio odontológico, queríamos avisarte que hoy a las ${hora} tienes una cita en nuestro consultorio. Muchas Gracias.`);
-      return `https://wa.me/${telefono}?text=${mensaje}`;
-    }
-
-    window.handleAtenderClick = async function (consultaId) {
-      try {
-          const response = await fetch('/api/actualizar-estado', {
-              method: 'POST',
-              headers: {
-                  'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                  id: consultaId,
-                  estado: 'en_proceso', // Cambiar al estado correspondiente
-              }),
-          });
-
-          if (response.ok) {
-              const result = await response.json();
-              console.log(result.message || 'Estado actualizado con éxito');
-
-              // Redirigir a la página de detalle de consulta
-              window.location.href = `/consulta?id=${consultaId}`;
-          } else {
-              const errorResult = await response.json();
-              console.error(errorResult.error || 'Error al actualizar el estado');
-              alert('No se pudo actualizar el estado de la consulta. Inténtalo de nuevo.');
-          }
-      } catch (error) {
-          console.error('Error al atender la consulta:', error);
-          alert('Ocurrió un error al procesar la solicitud.');
-      }
+  function getEstadoColor(estado) {
+    const colores = {
+      'activa': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+      'en_proceso': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+      'completada': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
     };
+    return colores[estado] || colores['activa'];
+  }
 
-    function loadData() {
-        try {
-            const consultasHoy = consultasData.filter(consulta => isToday(consulta.diaConsulta));
-            consultasHoy.sort((a, b) => a.horaConsulta.localeCompare(b.horaConsulta));
-            container.innerHTML = '';
+  function getEstadoTexto(estado) {
+    const textos = {
+      'activa': 'Activa',
+      'en_proceso': 'En Proceso',
+      'completada': 'Completada'
+    };
+    return textos[estado] || 'Activa';
+  }
 
-            consultasHoy.forEach((consulta) => {
-                const card = document.createElement("div");
-                card.className = "p-6 bg-white border border-gray-200 rounded-lg shadow-sm dark:border-gray-700 dark:bg-gray-800 space-y-4";
+  function getWhatsAppLink(telefono, nombrePaciente, nombreMedico, hora) {
+    const mensaje = encodeURIComponent(
+      `Hola, Te habla ${nombreMedico} del consultorio odontológico, queríamos avisarte que hoy a las ${hora} tienes una cita en nuestro consultorio. Muchas Gracias.`
+    );
+    return `https://wa.me/${telefono}?text=${mensaje}`;
+  }
 
-                // Determinar si mostrar o no los botones basado en el estado
-                const mostrarBotonAtender = consulta.estado !== 'completada';
-                const mostrarBotonRecordatorio = consulta.estado !== 'completada';
+  window.handleAtenderClick = async function (consultaId) {
+    try {
+      const response = await fetch('/api/actualizar-estado', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: consultaId,
+          estado: 'en_proceso',
+        }),
+      });
 
-                const botonAtenderHtml = mostrarBotonAtender ? `
-                    <button 
-                        onclick="handleAtenderClick('${consulta.id}')"
-                        class="w-full px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
-                        ${consulta.estado === 'en_proceso' ? 'Continuar' : 'Atender'}
-                    </button>
-                ` : '';
+      if (response.ok) {
+        const result = await response.json();
+        console.log(result.message || 'Estado actualizado con éxito');
 
-                const botonRecordatorioHtml = mostrarBotonRecordatorio ? `
-                    <button 
-                        onclick="window.open('${getWhatsAppLink(consulta.telefonoPaciente, consulta.nombrePaciente, consulta.nombreMedico, formatTime(consulta.horaConsulta))}', '_blank')"
-                        class="px-4 py-2 text-white bg-green-500 hover:bg-green-600 rounded-lg transition-colors"
-                    >
-                        Enviar Recordatorio
-                    </button>
-                ` : '';
-
-                card.innerHTML = `
-                    <div class="space-y-4">
-                        <div class="flex justify-between items-center">
-                            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">
-                                ${consulta.nombrePaciente}
-                            </h3>
-                            <span class="text-sm text-gray-500 dark:text-gray-400">
-                                ${formatTime(consulta.horaConsulta)}
-                            </span>
-                        </div>
-                        <div class="text-gray-600 dark:text-gray-300">
-                            <p><strong>Médico:</strong> ${consulta.nombreMedico}</p>
-                            <p><strong>Problema:</strong> ${consulta.problema}</p>
-                            <p><strong>Tratamiento:</strong> ${consulta.tratamiento}</p>
-                        </div>
-                        <div class="flex flex-col space-y-2">
-                            ${botonRecordatorioHtml}
-                            ${botonAtenderHtml}
-                        </div>
-                        <div class="flex items-center justify-between pt-2">
-                            <span class="text-sm font-medium">Estado:</span>
-                            <span class="px-3 py-1 rounded-full text-sm font-medium ${getEstadoColor(consulta.estado)}">
-                                ${getEstadoTexto(consulta.estado)}
-                            </span>
-                        </div>
-                    </div>
-                `;
-
-                container.appendChild(card);
-            });
-
-            if (consultasHoy.length === 0) {
-                container.innerHTML = `
-                    <div class="col-span-full text-center text-gray-500 dark:text-gray-400">
-                        No hay consultas programadas para hoy
-                    </div>
-                `;
-            }
-        } catch (error) {
-            console.error("Error al cargar las consultas:", error);
-            container.innerHTML = `
-                <div class="col-span-full text-center text-red-500">
-                    Error al cargar las consultas: ${error.message}
-                </div>
-            `;
-        }
+        window.location.href = `/consulta?id=${consultaId}`;
+      } else {
+        const errorResult = await response.json();
+        console.error(errorResult.error || 'Error al actualizar el estado');
+        alert('No se pudo actualizar el estado de la consulta. Inténtalo de nuevo.');
+      }
+    } catch (error) {
+      console.error('Error al atender la consulta:', error);
+      alert('Ocurrió un error al procesar la solicitud.');
     }
+  };
 
-    // Carga los datos cuando el documento esté listo
-    loadData();
+  function loadData() {
+    try {
+      const consultasHoy = consultasData.filter(consulta => isToday(consulta.diaConsulta));
+      consultasHoy.sort((a, b) => a.horaConsulta.localeCompare(b.horaConsulta));
+      container.innerHTML = '';
+
+      consultasHoy.forEach((consulta) => {
+        const card = document.createElement("div");
+        card.className = "p-6 bg-white border border-gray-200 rounded-lg shadow-sm dark:border-gray-700 dark:bg-gray-800 space-y-4";
+
+        const mostrarBotonAtender = consulta.estado !== 'completada';
+        const mostrarBotonRecordatorio = consulta.estado !== 'completada';
+
+        const botonAtenderHtml = mostrarBotonAtender ? `
+          <button 
+            onclick="handleAtenderClick('${consulta.id}')"
+            class="w-full px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
+            ${consulta.estado === 'en_proceso' ? 'Continuar' : 'Atender'}
+          </button>
+        ` : '';
+
+        const botonRecordatorioHtml = mostrarBotonRecordatorio ? `
+          <button 
+            onclick="window.open('${getWhatsAppLink(consulta.telefonoPaciente, consulta.nombrePaciente, consulta.nombreMedico, formatTime(consulta.horaConsulta))}', '_blank')"
+            class="px-4 py-2 text-white bg-green-500 hover:bg-green-600 rounded-lg transition-colors"
+          >
+            Enviar Recordatorio
+          </button>
+        ` : '';
+
+        let tratamientosHtml = '';
+        if (Array.isArray(consulta.tratamientos)) {
+          tratamientosHtml = consulta.tratamientos.map(tratamiento => `
+            <p><strong>Tratamiento:</strong> ${tratamiento}</p>
+          `).join('');
+        } else if (typeof consulta.tratamientos === 'string') {
+          tratamientosHtml = `<p><strong>Tratamiento:</strong> ${consulta.tratamientos}</p>`;
+        }
+
+        const tratamientosContainer = document.createElement("div");
+        tratamientosContainer.innerHTML = tratamientosHtml;
+        tratamientosContainer.style.display = "none";
+
+        const toggleTratamientosButton = document.createElement("button");
+        toggleTratamientosButton.textContent = "Mostrar tratamientos";
+        toggleTratamientosButton.className = "text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200";
+        toggleTratamientosButton.addEventListener("click", () => {
+          if (tratamientosContainer.style.display === "none") {
+            tratamientosContainer.style.display = "block";
+            toggleTratamientosButton.textContent = "Ocultar tratamientos";
+          } else {
+            tratamientosContainer.style.display = "none";
+            toggleTratamientosButton.textContent = "Mostrar tratamientos";
+          }
+        });
+
+        card.innerHTML = `
+          <div class="space-y-4">
+            <div class="flex justify-between items-center">
+              <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">
+                ${consulta.nombrePaciente}
+              </h3>
+              <span class="text-sm text-gray-500 dark:text-gray-400">
+                ${formatTime(consulta.horaConsulta)}
+              </span>
+            </div>
+            <div class="text-gray-600 dark:text-gray-300">
+              <p><strong>Médico:</strong> ${consulta.nombreMedico}</p>
+              <p><strong>Problema:</strong> ${consulta.problema}</p>
+            </div>
+          </div>
+        `;
+
+        const infoContainer = card.querySelector('.text-gray-600');
+        infoContainer.appendChild(toggleTratamientosButton);
+        infoContainer.appendChild(tratamientosContainer);
+
+        const actionsContainer = document.createElement('div');
+        actionsContainer.className = 'flex flex-col space-y-2';
+        actionsContainer.innerHTML = `
+          ${botonRecordatorioHtml}
+          ${botonAtenderHtml}
+        `;
+
+        card.appendChild(actionsContainer);
+
+        const estadoContainer = document.createElement('div');
+        estadoContainer.className = 'flex items-center justify-between pt-2';
+        estadoContainer.innerHTML = `
+          <span class="text-sm font-medium">Estado:</span>
+          <span class="px-3 py-1 rounded-full text-sm font-medium ${getEstadoColor(consulta.estado)}">
+            ${getEstadoTexto(consulta.estado)}
+          </span>
+        `;
+
+        card.appendChild(estadoContainer);
+        container.appendChild(card);
+      });
+
+      if (consultasHoy.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full text-center text-gray-500 dark:text-gray-400">
+            No hay consultas programadas para hoy
+          </div>
+        `;
+      }
+    } catch (error) {
+      console.error("Error al cargar las consultas:", error);
+      container.innerHTML = `
+        <div class="col-span-full text-center text-red-500">
+          Error al cargar las consultas: ${error.message}
+        </div>
+      `;
+    }
+  }
+
+  loadData();
 </script>
 
 <style>
-    .readme :global(h1:nth-of-type(2)) {
-        display: none;
-    }
+  .readme :global(h1:nth-of-type(2)) {
+    display: none;
+  }
 
-    .svg-inline :global(svg) {
-        height: 100%;
-        width: 100%;
-    }
+  .svg-inline :global(svg) {
+    height: 100%;
+    width: 100%;
+  }
 </style>

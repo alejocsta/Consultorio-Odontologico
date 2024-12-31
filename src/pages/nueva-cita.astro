@@ -85,17 +85,28 @@ import LayoutCommon from "../app/LayoutCommon.astro";
               ></textarea>
             </div>
       
-            <div>
-              <label for="tratamiento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Tratamiento
+						<div>
+              <label for="tratamientos" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Tratamientos
               </label>
-              <textarea
-                id="tratamiento"
-                name="tratamiento"
-                rows="3"
-                required
-                class="mt-1 w-full rounded-md border border-gray-300 bg-white p-2 dark:border-gray-600 dark:bg-gray-700"
-              ></textarea>
+              <div id="tratamientosContainer" class="space-y-2">
+                <div class="flex items-center gap-2">
+                  <select
+                    name="tratamientos[]"
+                    required
+                    class="mt-1 w-full rounded-md border border-gray-300 bg-white p-2 dark:border-gray-600 dark:bg-gray-700 focus:border-blue-500 focus:ring-blue-500"
+                  >
+                    <option value="">Seleccione un tratamiento</option>
+                  </select>
+                  <button
+                    type="button"
+                    id="addTratamientoBtn"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
       
@@ -133,7 +144,7 @@ import LayoutCommon from "../app/LayoutCommon.astro";
       
       if (citas.length === 0) return 1;
       
-      const maxId = Math.max(...citas.map((cita: any) => parseInt(cita.id)));
+      const maxId = Math.max(...citas.map((cita) => parseInt(cita.id)));
       return maxId + 1;
     } catch (error) {
       console.error('Error:', error);
@@ -141,62 +152,64 @@ import LayoutCommon from "../app/LayoutCommon.astro";
     }
   }
 
- // Modificación del event listener del form:
-form?.addEventListener('submit', async (e) => {
-  e.preventDefault();
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-  try {
-    const nextId = await obtenerSiguienteId();
-    const formData = new FormData(form as HTMLFormElement);
-    
-    // Debug: Verificar que se obtienen los datos del paciente
-    const pacienteDataString = formData.get('nombrePaciente');
-    console.log('Datos del paciente (string):', pacienteDataString);
-    
-    if (!pacienteDataString) {
-      throw new Error('No se seleccionó ningún paciente');
+    try {
+      const nextId = await obtenerSiguienteId();
+      const formData = new FormData(form);
+
+      const pacienteDataString = formData.get('nombrePaciente');
+      console.log('Datos del paciente (string):', pacienteDataString);
+
+      if (!pacienteDataString) {
+        throw new Error('No se seleccionó ningún paciente');
+      }
+
+      const pacienteData = JSON.parse(pacienteDataString);
+      console.log('Datos del paciente (parsed):', pacienteData);
+
+      const tratamientosSeleccionados = Array.from(document.querySelectorAll('select[name="tratamientos[]"]'))
+        .map((select) => select.value)
+        .filter((tratamiento) => tratamiento !== '');
+
+      const consultaData = {
+        id: nextId,
+        diaConsulta: formData.get('diaConsulta'),
+        horaConsulta: formData.get('horaConsulta'),
+        nombrePaciente: pacienteData.nombre,
+        telefonoPaciente: pacienteData.celular,
+        nombreMedico: formData.get('nombreMedico'),
+        problema: formData.get('problema'),
+        tratamientos: tratamientosSeleccionados,
+        estado: 'activa',
+      };
+
+      console.log('Datos a enviar:', consultaData);
+
+      const response = await fetch('/api/crear-cita', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(consultaData),
+      });
+
+      console.log('Status de la respuesta:', response.status);
+      const responseData = await response.json();
+      console.log('Respuesta del servidor:', responseData);
+
+      if (!response.ok) {
+        throw new Error(`Error al crear la consulta: ${responseData.message || 'Error desconocido'}`);
+      }
+
+      window.location.href = '/citasTable';
+      alert('Consulta creada exitosamente');
+    } catch (error) {
+      console.error('Error detallado:', error);
+      alert(`Error al crear la consulta: ${error.message}`);
     }
-
-    const pacienteData = JSON.parse(pacienteDataString as string);
-    console.log('Datos del paciente (parsed):', pacienteData);
-
-    const consultaData = {
-      id: nextId,
-      diaConsulta: formData.get('diaConsulta'),
-      horaConsulta: formData.get('horaConsulta'),
-      nombrePaciente: pacienteData.nombre,
-      celularPaciente: pacienteData.celular,
-      nombreMedico: formData.get('nombreMedico'),
-      problema: formData.get('problema'),
-      tratamiento: formData.get('tratamiento'),
-      estado: 'activa'
-    };
-
-    console.log('Datos a enviar:', consultaData);
-
-    const response = await fetch('/api/crear-cita', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(consultaData)
-    });
-
-    console.log('Status de la respuesta:', response.status);
-    const responseData = await response.json();
-    console.log('Respuesta del servidor:', responseData);
-
-    if (!response.ok) {
-      throw new Error(`Error al crear la consulta: ${responseData.message || 'Error desconocido'}`);
-    }
-
-    alert('Consulta creada exitosamente');
-    window.location.href = '/citasTable';
-  } catch (error) {
-    console.error('Error detallado:', error);
-    alert(`Error al crear la consulta: ${error.message}`);
-  }
-});
+  });
 
   volverBtn?.addEventListener('click', () => {
     window.location.href = '/citasTable';
@@ -208,55 +221,121 @@ form?.addEventListener('submit', async (e) => {
     }
   });
 
-  async function cargarPacientes() {
-  try {
-    const response = await fetch('/api/pacientes');
-    if (!response.ok) throw new Error('Error al cargar pacientes');
-    
-    const pacientes = await response.json();
-    console.log('Pacientes cargados:', pacientes);
-    
-    const selectPaciente = document.getElementById('nombrePaciente');
-    
-    if (!selectPaciente) {
-      throw new Error('No se encontró el elemento select para pacientes');
-    }
+  document.getElementById('addTratamientoBtn')?.addEventListener('click', () => {
+    const tratamientosContainer = document.getElementById('tratamientosContainer');
 
-    // Limpiar opciones existentes excepto la primera
-    while (selectPaciente.options.length > 1) {
-      selectPaciente.remove(1);
-    }
-    
-    pacientes.forEach(paciente => {
-      const option = document.createElement('option');
-      const pacienteData = {
-        dni: paciente.dni,
-        nombre: paciente.name,
-        celular: paciente.telefono // Corregido de celular a telefono
-      };
-      
-      option.value = JSON.stringify(pacienteData);
-      option.textContent = `${paciente.name} - DNI: ${paciente.dni}`;
-      selectPaciente.appendChild(option);
+    const tratamientoGroup = document.createElement('div');
+    tratamientoGroup.classList.add('flex', 'items-center', 'gap-2', 'mt-2');
+
+    const select = document.createElement('select');
+    select.name = 'tratamientos[]';
+    select.required = true;
+    select.classList.add(
+      'w-full',
+      'rounded-md',
+      'border',
+      'border-gray-300',
+      'bg-white',
+      'p-2',
+      'dark:border-gray-600',
+      'dark:bg-gray-700',
+      'focus:border-blue-500',
+      'focus:ring-blue-500'
+    );
+
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = 'Seleccione un tratamiento';
+    select.appendChild(defaultOption);
+
+    const removeButton = document.createElement('button');
+    removeButton.type = 'button';
+    removeButton.classList.add(
+      'px-4',
+      'py-2',
+      'bg-red-600',
+      'text-white',
+      'rounded-md',
+      'hover:bg-red-700'
+    );
+    removeButton.textContent = '-';
+    removeButton.addEventListener('click', () => {
+      tratamientoGroup.remove();
     });
-    
-    console.log('Opciones de pacientes cargadas:', selectPaciente.options.length);
-  } catch (error) {
-    console.error('Error al cargar pacientes:', error);
-    alert('Error al cargar la lista de pacientes: ' + error.message);
+
+    tratamientoGroup.appendChild(select);
+    tratamientoGroup.appendChild(removeButton);
+    tratamientosContainer?.appendChild(tratamientoGroup);
+
+    cargarTratamientos(select);
+  });
+
+  async function cargarPacientes() {
+    try {
+      const response = await fetch('/api/pacientes');
+      if (!response.ok) throw new Error('Error al cargar pacientes');
+
+      const pacientes = await response.json();
+      console.log('Pacientes cargados:', pacientes);
+
+      const selectPaciente = document.getElementById('nombrePaciente');
+
+      if (!selectPaciente) {
+        throw new Error('No se encontró el elemento select para pacientes');
+      }
+
+      while (selectPaciente.options.length > 1) {
+        selectPaciente.remove(1);
+      }
+
+      pacientes.forEach((paciente) => {
+        const option = document.createElement('option');
+        const pacienteData = {
+          dni: paciente.dni,
+          nombre: paciente.name,
+          celular: paciente.telefono,
+        };
+
+        option.value = JSON.stringify(pacienteData);
+        option.textContent = `${paciente.name} - DNI: ${paciente.dni}`;
+        selectPaciente.appendChild(option);
+      });
+
+      console.log('Opciones de pacientes cargadas:', selectPaciente.options.length);
+    } catch (error) {
+      console.error('Error al cargar pacientes:', error);
+      alert('Error al cargar la lista de pacientes: ' + error.message);
+    }
   }
-}
+
+  async function cargarTratamientos(selectElement) {
+    try {
+      const response = await fetch('/api/tratamientos');
+      if (!response.ok) throw new Error('Error al cargar tratamientos');
+
+      const tratamientos = await response.json();
+      tratamientos.forEach((tratamiento) => {
+        const option = document.createElement('option');
+        option.value = tratamiento.nombreTratamiento;
+        option.textContent = tratamiento.nombreTratamiento;
+        selectElement.appendChild(option);
+      });
+    } catch (error) {
+      console.error('Error al cargar tratamientos:', error);
+      alert('Error al cargar la lista de tratamientos: ' + error.message);
+    }
+  }
 
   async function cargarMedicos() {
     try {
       const response = await fetch('/api/medicos');
       if (!response.ok) throw new Error('Error al cargar médicos');
-      
+
       const medicos = await response.json();
-      const selectMedico = document.getElementById('nombreMedico') as HTMLSelectElement;
-      
+      const selectMedico = document.getElementById('nombreMedico');
+
       if (selectMedico) {
-        medicos.forEach((medico: any) => {
+        medicos.forEach((medico) => {
           const option = document.createElement('option');
           option.value = medico.nombre;
           option.textContent = `${medico.nombre} - ${medico.especialidad}`;
@@ -264,7 +343,7 @@ form?.addEventListener('submit', async (e) => {
         });
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error al cargar médicos:', error);
       alert('Error al cargar la lista de médicos');
     }
   }
@@ -272,5 +351,7 @@ form?.addEventListener('submit', async (e) => {
   document.addEventListener('DOMContentLoaded', () => {
     cargarMedicos();
     cargarPacientes();
+    cargarTratamientos(document.querySelector('select[name="tratamientos[]"]'));
   });
 </script>
+
