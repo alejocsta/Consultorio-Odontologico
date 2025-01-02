@@ -4,63 +4,59 @@ import consultas from '../data/pacientes.json';
 ---
 
 <script define:vars={{ consultas }}>
-  // Estado global encapsulado
-  const state = {
-    modals: {
-      edit: {
-        isOpen: false,
-        selectedPatient: null
-      },
-      create: {
-        isOpen: false
-      }
-    }
-  };
+const BASE_URL = 'http://localhost:5000/api';
 
-	// Variables para búsqueda y datos
-	let pacientes = [...consultas]; // Copia de los datos originales
-  let pacientesFiltrados = [...pacientes];
+// Estado y Variables Globales
+const state = {
+  modals: {
+    edit: { isOpen: false, selectedPatient: null },
+    create: { isOpen: false }
+  }
+};
 
-  // Validaciones
-  const validatePatient = (patient) => {
-    const errors = [];
-    const dniRegex = /^[0-9]{8}$/;
-    const phoneRegex = /^[0-9]{10}$/;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+let pacientes = [...consultas];
+let pacientesFiltrados = [...pacientes];
 
-    if (!patient.name.trim()) errors.push('El nombre es requerido');
-    if (!dniRegex.test(patient.dni)) errors.push('DNI inválido (8 números)');
-    if (!emailRegex.test(patient.mail)) errors.push('Email inválido');
-    if (!phoneRegex.test(patient.telefono)) errors.push('Teléfono inválido (10 números)');
+// Validaciones
+const validatePatient = (patient) => {
+  const errors = [];
+  const dniRegex = /^[0-9]{8}$/;
+  const phoneRegex = /^\d{6,14}$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    return errors;
-  };
+  if (!patient.nombre.trim()) errors.push('El nombre es requerido');
+  if (!dniRegex.test(patient.dni)) errors.push('DNI inválido (8 números)');
+  if (!emailRegex.test(patient.mail)) errors.push('Email inválido');
+  if (!phoneRegex.test(patient.telefono)) errors.push('Teléfono inválido (6 a 14 dígitos)');
 
-  // Sistema de notificaciones mejorado
-  const showNotification = (message, type = 'success') => {
-    const existingNotification = document.querySelector('.notification');
-    if (existingNotification) existingNotification.remove();
+  return errors;
+};
 
-    const notification = document.createElement('div');
-    const bgColor = type === 'success' ? 'bg-green-500' : 'bg-red-500';
-    
-    notification.className = `notification fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 text-white ${bgColor} transition-opacity duration-300`;
-    notification.textContent = message;
-    
-    document.body.appendChild(notification);
-    setTimeout(() => {
-      notification.style.opacity = '0';
-      setTimeout(() => notification.remove(), 3000);
-    }, 3000);
-  };
+// Mostrar notificaciones
+const showNotification = (message, type = 'success') => {
+  const existingNotification = document.querySelector('.notification');
+  if (existingNotification) existingNotification.remove();
 
-	// Función para filtrar pacientes
-function filtrarPacientes() {
+  const notification = document.createElement('div');
+  const bgColor = type === 'success' ? 'bg-green-500' : 'bg-red-500';
+  
+  notification.className = `notification fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 text-white ${bgColor} transition-opacity duration-300`;
+  notification.textContent = message;
+  
+  document.body.appendChild(notification);
+  setTimeout(() => {
+    notification.style.opacity = '0';
+    setTimeout(() => notification.remove(), 3000);
+  }, 3000);
+};
+
+// Filtrar Pacientes
+async function filtrarPacientes() {
   const searchTerm = document.getElementById('searchInput')?.value.toLowerCase().trim();
   
   if (!searchTerm) {
     pacientesFiltrados = [...pacientes];
-    actualizarTabla();
+    await actualizarTabla();
     return;
   }
 
@@ -70,27 +66,35 @@ function filtrarPacientes() {
     (paciente.mail?.toLowerCase() || '').includes(searchTerm)
   );
 
-  actualizarTabla();
+  await actualizarTabla();
 }
 
-// Función para actualizar la tabla
-function actualizarTabla() {
+// Actualizar Tabla
+
+async function actualizarTabla() {
   const tbody = document.querySelector('tbody');
   if (!tbody) return;
 
-  tbody.innerHTML = pacientesFiltrados.map(row => `
-    <tr 
-      class="hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-150"
-      data-name="${row.name || ''}"
-      data-dni="${row.dni || ''}"
-      data-telefono="${row.telefono || ''}"
-      data-mail="${row.mail || ''}"
-    >
-      <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">${row.dni || ''}</td>
-      <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">${row.name || ''}</td>
-      <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">${row.mail || ''}</td>
-      <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">${row.telefono || ''}</td>
-      <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+  try {
+    const response = await fetch(`${BASE_URL}/paciente`);
+    const data = await response.json();
+    const pacientes = data.pacientes;
+
+    tbody.innerHTML = pacientes.map(row => `
+      <tr 
+        class="hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-150"
+        data-name="${row.nombre || ''}"
+        data-dni="${row.dni || ''}"
+        data-telefono="${row.telefono || ''}"
+        data-mail="${row.mail || ''}"
+      >
+        <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">${row.dni || ''}</td>
+        <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">${row.nombre || ''}</td>
+        <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">${row.mail || ''}</td>
+        <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+          <span>${row.areaCode || ''}</span><span>${row.telefono || ''}</span>
+        </td>
+        <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
         <div class="flex space-x-2">
           <button 
             class="edit-button p-2 text-blue-600 hover:text-blue-700 focus:outline-none"
@@ -113,238 +117,296 @@ function actualizarTabla() {
           </button>
         </div>
       </td>
-    </tr>
-  `).join('');
+      </tr>
+    `).join('');
+
+  } catch (error) {
+    console.error('Error al obtener pacientes:', error);
+    showNotification('No se pudieron cargar los pacientes', 'error');
+  }
 }
 
-  // Manejadores del Modal de Edición
-  const openEditModal = (patient) => {
-    state.modals.edit.selectedPatient = { ...patient };
-    state.modals.edit.isOpen = true;
-    
-    const modal = document.getElementById('editModal');
-    const form = document.getElementById('editForm');
-    
-    modal?.classList.remove('hidden');
-    
-    // Rellenar el formulario
-    if (form) {
-      Object.entries(patient).forEach(([key, value]) => {
-        const input = form.elements[key];
-        if (input) input.value = value;
-      });
-    }
-  };
 
-  const closeEditModal = () => {
-    state.modals.edit.isOpen = false;
-    state.modals.edit.selectedPatient = null;
-    
-    const modal = document.getElementById('editModal');
-    const form = document.getElementById('editForm');
-    
-    modal?.classList.add('hidden');
-    form?.reset();
-  };
+// Manejadores de Modales
+const openEditModal = async (patient) => {
+  state.modals.edit.selectedPatient = { ...patient };
+  state.modals.edit.isOpen = true;
 
-  // Manejadores del Modal de Creación
-  const openCreateModal = () => {
+  const modal = document.getElementById('editModal');
+  const form = document.getElementById('editForm');
+
+  modal?.classList.remove('hidden');
+
+  if (form) {
+    Object.entries(patient).forEach(([key, value]) => {
+      const input = form.elements[key];
+      if (input) input.value = value;
+    });
+  }
+};
+
+const closeEditModal = () => {
+  state.modals.edit.isOpen = false;
+  state.modals.edit.selectedPatient = null;
+  document.getElementById('editModal')?.classList.add('hidden');
+  document.getElementById('editForm')?.reset();
+};
+
+const openCreateModal = () => {
+  const createModal = document.getElementById('createModal');
+  if (createModal) {
+    createModal.classList.remove('hidden');
     state.modals.create.isOpen = true;
-    document.getElementById('createModal')?.classList.remove('hidden');
-  };
+  } else {
+    console.error('Modal de creación no encontrado');
+  }
+};
 
-  const closeCreateModal = () => {
+const closeCreateModal = () => {
+  const createModal = document.getElementById('createModal');
+  if (createModal) {
+    createModal.classList.add('hidden');
     state.modals.create.isOpen = false;
-    document.getElementById('createModal')?.classList.add('hidden');
     document.getElementById('createForm')?.reset();
+  }
+};
+
+// Manejo de Formularios
+const handleFormSubmit = async (endpoint, formData, onSuccess) => {
+  const patient = {
+    nombre: formData.get('name')?.toString().trim(), 
+    dni: formData.get('dni')?.toString().trim(),
+    mail: formData.get('mail')?.toString().trim(),
+    telefono: formData.get('telefono')?.toString().trim(),
+    areaCode: formData.get('areaCode')?.toString().trim(),
+    // Campos adicionales para cumplir con el schema
+    edad: 0,
+    direccion: '',
+    obraSocial: 'No especificada',
+    ultCons: new Date(),
+    tratamientoMedico: 'No',
+    tomaMedicamentos: 'No',
+    alergias: '',
+    embarazada: false,
+    motivoConsulta: 'Consulta general'
   };
 
-  // Manejador genérico para formularios
-  const handleFormSubmit = async (endpoint, formData, onSuccess) => {
-    const patient = {
-      name: formData.get('name')?.toString().trim(),
-      dni: formData.get('dni')?.toString().trim(),
-      mail: formData.get('mail')?.toString().trim(),
-      telefono: formData.get('telefono')?.toString().trim(),
-      especialidad: formData.get('especialidad')?.toString().trim()
-    };
+  const errors = validatePatient(patient);
+  if (errors.length > 0) {
+    throw new Error(errors.join('\n'));
+  }
 
-    const errors = validatePatient(patient);
-    if (errors.length > 0) {
-      throw new Error(errors.join('\n'));
+  const response = await fetch(`${BASE_URL}/paciente/create`, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      'Origin': 'http://localhost:4321'
+    },
+    body: JSON.stringify(patient)
+  });
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.message || `Error del servidor: ${response.status}`);
+  }
+
+  onSuccess(result);
+  return result;
+};
+
+const handleDelete = async (dni, nombre, row, button) => {
+  try {
+    button.disabled = true;
+    button.textContent = 'Eliminando...';
+
+    const response = await fetch(`${BASE_URL}/paciente/deleteByName/${nombre}`, {
+      method: 'DELETE',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Origin': 'http://localhost:4321'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error del servidor: ${response.status}`);
     }
 
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const result = await response.json();
+    if (result.status === 'success') {
+      showNotification('Paciente eliminado correctamente');
+      row.remove();
+    } else {
+      throw new Error(result.message || 'Error al eliminar el paciente');
+    }
+  } catch (error) {
+    showNotification(error.message, 'error');
+    if (row.parentNode) {
+      button.disabled = false;
+      button.textContent = 'Eliminar';
+    }
+  }
+};
+
+const handleEdit = async (patient, row, button) => {
+  try {
+    const response = await fetch(`${BASE_URL}/paciente/updateByID/${patient._id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Origin': 'http://localhost:4321'
+      },
       body: JSON.stringify(patient)
     });
 
-    const result = await response.json();
-
-    if (!response.ok || !result.success) {
-      throw new Error(result.message || `Error del servidor: ${response.status}`);
+    if (!response.ok) {
+      throw new Error(`Error del servidor: ${response.status}`);
     }
 
-    onSuccess();
-    return result;
-  };
+    showNotification('Paciente actualizado correctamente');
+    await actualizarTabla();
+    closeEditModal(); 
+  } catch (error) {
+    showNotification(error.message, 'error');
+  }
+};
 
-  // Manejador para eliminar paciente
-  const handleDelete = async (dni, nombre, row, button) => {
-    try {
-      button.disabled = true;
-      button.textContent = 'Eliminando...';
-
-      const response = await fetch('/api/deletePatient.json', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dni })
-      });
-
-      if (!response.ok) {
-        throw new Error(`Error del servidor: ${response.status}`);
-      }
-
-      const result = await response.json();
-      if (result.success) {
-        showNotification('Paciente eliminado correctamente');
-        row.remove();
-      } else {
-        throw new Error(result.message || 'Error al eliminar el paciente');
-      }
-    } catch (error) {
-      showNotification(error.message, 'error');
-      if (row.parentNode) {
-        button.disabled = false;
-        button.textContent = 'Eliminar';
-      }
-    }
-  };
+// Inicialización y Event Listeners
+document.addEventListener('DOMContentLoaded', () => {
+  // Inicialización
+  actualizarTabla();
 
   // Event Listeners
-  document.addEventListener('DOMContentLoaded', () => {
-    // Agregar event listener para el botón volver
-    document.getElementById('volverBtn')?.addEventListener('click', () => {
-      window.location.href = '/';
-    });
-
-    // Cerrar modales con ESC
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        closeEditModal();
-        closeCreateModal();
-      }
-    });
-
-    // Cerrar modales al hacer click fuera
-    document.addEventListener('click', (e) => {
-      if (e.target.classList.contains('modal-overlay')) {
-        closeEditModal();
-        closeCreateModal();
-      }
-    });
-
-		// Inicializar tabla y buscador
-actualizarTabla();
-document.getElementById('searchInput')?.addEventListener('input', filtrarPacientes);
-
-    // Botón crear paciente
-    document.getElementById('createPatientButton')?.addEventListener('click', openCreateModal);
-
-    // Botones cerrar modales
-    document.querySelector('.close-create-modal')?.addEventListener('click', closeCreateModal);
-    document.querySelector('.cancel-button')?.addEventListener('click', closeEditModal);
-
-    // Delegación de eventos para la tabla
-    document.querySelector('tbody')?.addEventListener('click', async (e) => {
-      const target = e.target;
-      if (!target) return;
-
-      const row = target.closest('tr');
-      if (!row) return;
-
-      if (target.matches('.edit-button') || target.closest('.edit-button')) {
-        const patient = {
-          name: row.dataset.name,
-          dni: row.dataset.dni,
-          mail: row.dataset.mail,
-          telefono: row.dataset.telefono
-        };
-        openEditModal(patient);
-      }
-
-      if (target.matches('.delete-button') || target.closest('.delete-button')) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        if (confirm(`¿Está seguro que desea eliminar al paciente ${row.dataset.name}?`)) {
-          await handleDelete(row.dataset.dni, row.dataset.name, row, target);
-        }
-      }
-    });
-
-    // Form de creación
-    document.getElementById('createForm')?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const form = e.target;
-      const submitButton = form.querySelector('button[type="submit"]');
-      const originalText = submitButton.textContent;
-
-      try {
-        submitButton.disabled = true;
-        submitButton.textContent = 'Creando...';
-
-        await handleFormSubmit(
-          '/api/createPatient',
-          new FormData(form),
-          () => {
-            showNotification('Paciente creado correctamente');
-            closeCreateModal();
-            window.location.reload();
-          }
-        );
-      } catch (error) {
-        showNotification(error.message, 'error');
-      } finally {
-        submitButton.disabled = false;
-        submitButton.textContent = originalText;
-      }
-    });
-
-    // Form de edición
-    document.getElementById('editForm')?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const form = e.target;
-      const submitButton = form.querySelector('button[type="submit"]');
-      const originalText = submitButton.textContent;
-
-      try {
-        submitButton.disabled = true;
-        submitButton.textContent = 'Guardando...';
-
-        await handleFormSubmit(
-          '/api/updatePatient.json',
-          new FormData(form),
-          () => {
-            showNotification('Paciente actualizado correctamente');
-            closeEditModal();
-            window.location.reload();
-          }
-        );
-      } catch (error) {
-        showNotification(error.message, 'error');
-      } finally {
-        submitButton.disabled = false;
-        submitButton.textContent = originalText;
-      }
-    });
+  document.getElementById('volverBtn')?.addEventListener('click', () => {
+    window.location.href = '/';
   });
+
+  document.getElementById('searchInput')?.addEventListener('input', async () => {
+    await filtrarPacientes();
+  });
+
+  document.getElementById('createPatientButton')?.addEventListener('click', openCreateModal);
+
+
+	document.addEventListener('click', (e) => {
+  if (e.target.classList.contains('close-create-modal')) {
+    if (e.target.closest('#editModal')) {
+      closeEditModal();
+    }
+    if (e.target.closest('#createModal')) {
+      closeCreateModal();
+    }
+  }
+});
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeEditModal();
+      closeCreateModal();
+    }
+  });
+
+  document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('modal-overlay')) {
+      closeEditModal();
+      closeCreateModal();
+    }
+  });
+
+  // Event Listeners para la tabla
+  document.querySelector('tbody')?.addEventListener('click', async (e) => {
+    const target = e.target;
+    if (!target) return;
+
+    const row = target.closest('tr');
+    if (!row) return;
+
+    const button = target.closest('.edit-button, .delete-button');
+    if (!button) return;
+
+    const hasActive = button.getAttribute('data-has-active') === 'true';
+    
+    if (button.classList.contains('edit-button')) {
+      if (button.hasAttribute('disabled')) {
+        showNotification('No se puede editar el paciente en este momento debido a que tiene consultas activas o en proceso.', 'error');
+        return;
+      }
+      
+      const patient = {
+        name: row.dataset.name,
+        dni: row.dataset.dni,
+        mail: row.dataset.mail,
+        telefono: row.dataset.telefono
+      };
+      await openEditModal(patient);
+    }
+
+    if (button.classList.contains('delete-button')) {
+      if (hasActive) {
+        showNotification('No se puede eliminar el paciente en este momento debido a que tiene consultas activas o en proceso.', 'error');
+        return;
+      }
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (confirm(`¿Está seguro que desea eliminar al paciente ${row.dataset.name}?`)) {
+        await handleDelete(row.dataset.dni, row.dataset.name, row, button);
+      }
+    }
+  });
+
+  // Formularios
+  document.getElementById('createForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const submitButton = form.querySelector('button[type="submit"]');
+    const originalText = submitButton.textContent;
+
+    try {
+      submitButton.disabled = true;
+      submitButton.textContent = 'Creando...';
+
+      await handleFormSubmit(
+        '/paciente', 
+        new FormData(form),
+        () => {
+          showNotification('Paciente creado correctamente');
+          closeCreateModal();
+          window.location.reload();
+        }
+      );
+    } catch (error) {
+      showNotification(error.message, 'error');
+    } finally {
+      submitButton.disabled = false;
+      submitButton.textContent = originalText;
+    }
+  });
+
+  document.getElementById('editForm')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const patient = {
+    nombre: form.elements.name.value,
+    dni: form.elements.dni.value,
+    mail: form.elements.mail.value,
+    telefono: form.elements.telefono.value,
+    areaCode: form.elements.areaCode.value
+  };
+
+  const row = document.querySelector(`tr[data-dni="${patient.dni}"]`);
+  const button = row.querySelector('.edit-button');
+
+  await handleEdit(patient, row, button);
+});
+})
 </script>
 
 <LayoutCommon>
   <div class="min-h-screen bg-gradient-to-r from-slate-100 to-slate-200 p-4 text-slate-800 dark:from-slate-900 dark:to-slate-800 dark:text-slate-100 lg:p-16">
     <div class="mx-auto max-w-6xl">
+      <!-- Encabezado -->
       <div class="flex justify-between items-center mb-6">
         <div class="flex items-center gap-4">
           <button id="volverBtn" class="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
@@ -352,7 +414,6 @@ document.getElementById('searchInput')?.addEventListener('input', filtrarPacient
           </button>
           <h2 class="text-2xl font-bold">Pacientes</h2>
         </div>
-				
         <button
           id="createPatientButton"
           class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-300 dark:focus:ring-green-900 transition-colors duration-200"
@@ -361,17 +422,20 @@ document.getElementById('searchInput')?.addEventListener('input', filtrarPacient
         </button>
       </div>
 
-			<div class="mb-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-				<div class="space-y-2">
-					<label for="searchInput" class="block text-sm font-medium">Buscar Paciente</label>
-					<input
-						type="text"
-						id="searchInput"
-						placeholder="Buscar por nombre, DNI o email..."
-						class="w-full rounded-lg border border-gray-300 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-					/>
-				</div>
-			</div>
+      <!-- Búsqueda -->
+      <div class="mb-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div class="space-y-2">
+          <label for="searchInput" class="block text-sm font-medium">Buscar Paciente</label>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Buscar por nombre, DNI o email..."
+            class="w-full rounded-lg border border-gray-300 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+          />
+        </div>
+      </div>
+
+      <!-- Tabla de Pacientes -->
       <div class="overflow-x-auto rounded-lg bg-white shadow-xl dark:bg-gray-800 w-full">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-100 dark:bg-gray-700">
@@ -384,105 +448,80 @@ document.getElementById('searchInput')?.addEventListener('input', filtrarPacient
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-            {consultas.map((row) => (
-              <tr 
-                class="hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-150"
-                data-name={row.name}
-                data-dni={row.dni}
-                data-telefono={row.telefono}
-                data-mail={row.mail}
-              >
-                <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">{row.dni}</td>
-                <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">{row.name}</td>
-                <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">{row.mail}</td>
-                <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">{row.telefono}</td>
-                <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
-                  <div class="flex space-x-2">
-                    <button 
-                      class="edit-button p-2 text-blue-600 hover:text-blue-700 focus:outline-none"
-                      title="Editar"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                      </svg>
-                    </button>
-                    <button 
-                      class="delete-button p-2 text-red-600 hover:text-red-700 focus:outline-none"
-                      title="Eliminar"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M3 6h18"></path>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
-                        <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                      </svg>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+            <!-- Se llena dinámicamente via JavaScript -->
           </tbody>
         </table>
       </div>
     </div>
   </div>
 
-  <!-- Modal (inicialmente oculto) -->
+  <!-- Modal de Edición -->
   <div id="editModal" class="fixed inset-0 flex items-center justify-center z-50 hidden">
-    <div class="absolute inset-0 bg-black opacity-50"></div>
+    <div class="absolute inset-0 bg-black opacity-50 modal-overlay"></div>
     <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-1/3">
       <h2 class="text-lg font-bold text-gray-800 dark:text-gray-100 mb-4">Editar Paciente</h2>
       <form id="editForm" class="space-y-4">
+        <!-- Campos de edición (igual que en el modal de creación) -->
         <div class="mb-4">
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre</label>
           <input 
             type="text" 
             name="name"
+            placeholder="Ingrese Nombre y Apellido"
             required
             class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" 
           />
         </div>
+        
         <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            DNI
-            <span class="text-xs text-gray-500 ml-2">(No editable)</span>
-          </label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">DNI</label>
           <input 
             type="text" 
             name="dni"
-            readonly 
             required
+            placeholder="Ingrese 8 números"
             class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" 
           />
         </div>
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Teléfono</label>
-          <input 
-            type="text" 
+        
+        <div class="mb-4 flex items-center">
+          <select
+            name="areaCode"
+            class="mr-2 block w-24 border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+          >
+            <option value="+54">+54</option>
+            <option value="+1">+1</option>
+          </select>
+          <input
+            type="text"
             name="telefono"
             required
-            class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" 
+            placeholder="Número de teléfono"
+            class="flex-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
           />
         </div>
+        
         <div class="mb-4">
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
           <input 
             type="email" 
             name="mail"
             required
+            placeholder="ejemplo@correo.com"
             class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" 
           />
         </div>
+
         <div class="flex justify-end space-x-4">
           <button 
             type="button" 
-            class="cancel-button px-4 py-2 text-sm font-medium text-white bg-gray-600 rounded-lg hover:bg-gray-700 focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-700"
+            class="close-create-modal px-4 py-2 text-sm font-medium text-white bg-gray-600 rounded-lg hover:bg-gray-700 focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-700"
           >
             Cancelar
           </button>
           <button 
             type="submit" 
-            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-900"
+            class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-300 dark:focus:ring-green-900"
           >
             Guardar
           </button>
@@ -493,46 +532,61 @@ document.getElementById('searchInput')?.addEventListener('input', filtrarPacient
 
   <!-- Modal de Creación -->
   <div id="createModal" class="fixed inset-0 flex items-center justify-center z-50 hidden">
-    <div class="absolute inset-0 bg-black opacity-50"></div>
+    <div class="absolute inset-0 bg-black opacity-50 modal-overlay"></div>
     <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-1/3">
       <h2 class="text-lg font-bold text-gray-800 dark:text-gray-100 mb-4">Crear Nuevo Paciente</h2>
       <form id="createForm" class="space-y-4">
+        <!-- Campos de creación (igual que en el modal de edición) -->
         <div class="mb-4">
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre</label>
           <input 
             type="text" 
             name="name"
+            placeholder="Ingrese Nombre y Apellido"
             required
             class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" 
           />
         </div>
+        
         <div class="mb-4">
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">DNI</label>
           <input 
             type="text" 
             name="dni"
             required
+            placeholder="Ingrese 8 números"
             class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" 
           />
         </div>
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Teléfono</label>
-          <input 
-            type="text" 
+        
+        <div class="mb-4 flex items-center">
+          <select
+            name="areaCode"
+            class="mr-2 block w-24 border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+          >
+            <option value="+54">+54</option>
+            <option value="+1">+1</option>
+          </select>
+          <input
+            type="text"
             name="telefono"
             required
-            class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" 
+            placeholder="Número de teléfono"
+            class="flex-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
           />
         </div>
+        
         <div class="mb-4">
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
           <input 
             type="email" 
             name="mail"
             required
+            placeholder="ejemplo@correo.com"
             class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" 
           />
         </div>
+
         <div class="flex justify-end space-x-4">
           <button 
             type="button" 

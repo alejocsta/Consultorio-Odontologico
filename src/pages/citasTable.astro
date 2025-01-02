@@ -214,51 +214,61 @@ const obtenerConsultas = async () => {
     }
   }
 
-  function renderizarTabla() {
-    const tbody = document.getElementById('consultasTableBody');
-    if (!tbody) return;
+	function renderizarTabla() {
+  const tbody = document.getElementById('consultasTableBody');
+  if (!tbody) return;
 
-    tbody.innerHTML = consultasFiltradas.map(consulta => `
-      <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-        <td class="whitespace-nowrap px-6 py-4">${consulta.id}</td>
-        <td class="whitespace-nowrap px-6 py-4">${consulta.diaConsulta}</td>
-        <td class="whitespace-nowrap px-6 py-4">${consulta.horaConsulta}</td>
-        <td class="whitespace-nowrap px-6 py-4">${consulta.nombrePaciente}</td>
-        <td class="whitespace-nowrap px-6 py-4">${consulta.nombreMedico}</td>
-        <td class="whitespace-nowrap px-6 py-4">${consulta.problema}</td>
-        <td class="whitespace-nowrap px-6 py-4">
-          <span class="rounded-full px-2 py-1 text-xs font-semibold ${getEstadoClase(consulta.estado)}">
-            ${consulta.estado}
-          </span>
-        </td>
-        <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
-          <div class="flex space-x-2">
-            <button 
-              onclick="openEditModal(${JSON.stringify(consulta).replace(/"/g, '&quot;')})"
-              class="edit-button p-2 text-blue-600 hover:text-blue-700 focus:outline-none"
-              title="Editar"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-              </svg>
-            </button>
-            <button
-              onclick="eliminarCita(${consulta.id})"
-              class="delete-button p-2 text-red-600 hover:text-red-700 focus:outline-none"
-              title="Eliminar"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M3 6h18"></path>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
-                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-              </svg>
-            </button>
-          </div>
-        </td>
-      </tr>
-    `).join('');
-  }
+  // Ordenar las consultas por día y hora en orden descendente (de más cercana a más lejana)
+  consultasFiltradas.sort((a, b) => {
+    const dateA = new Date(`${a.diaConsulta}T${a.horaConsulta}`);
+    const dateB = new Date(`${b.diaConsulta}T${b.horaConsulta}`);
+    return dateB - dateA; // Orden descendente
+  });
+
+  // Generar el contenido de la tabla
+  tbody.innerHTML = consultasFiltradas.map(consulta => `
+    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+      <td class="whitespace-nowrap px-6 py-4">${consulta.id}</td>
+      <td class="whitespace-nowrap px-6 py-4">${consulta.diaConsulta}</td>
+      <td class="whitespace-nowrap px-6 py-4">${consulta.horaConsulta}</td>
+      <td class="whitespace-nowrap px-6 py-4">${consulta.nombrePaciente}</td>
+      <td class="whitespace-nowrap px-6 py-4">${consulta.nombreMedico}</td>
+      <td class="whitespace-nowrap px-6 py-4">${consulta.problema}</td>
+      <td class="whitespace-nowrap px-6 py-4">
+        <span class="rounded-full px-2 py-1 text-xs font-semibold ${getEstadoClase(consulta.estado)}">
+          ${consulta.estado}
+        </span>
+      </td>
+      <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+        <div class="flex space-x-2">
+          <button 
+            onclick="openEditModal(${JSON.stringify(consulta).replace(/\"/g, '&quot;')})"
+            class="edit-button p-2 text-blue-600 hover:text-blue-700 focus:outline-none"
+            title="Editar"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+          </button>
+          <button
+            onclick="eliminarCita(${consulta.id})"
+            class="delete-button p-2 text-red-600 hover:text-red-700 focus:outline-none"
+            title="Eliminar"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 6h18"></path>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+              <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+	
+
 
   function filtrarConsultas() {
     const searchTerm = (document.getElementById('searchInput') as HTMLInputElement)?.value.toLowerCase();
@@ -346,22 +356,29 @@ const obtenerConsultas = async () => {
   }
 }
 
-  async function openEditModal(cita: Consulta) {
-    const modal = document.getElementById('editModal');
-    const form = document.getElementById('editForm') as HTMLFormElement;
-    
-    await cargarSelectores();
-    modal?.classList.remove('hidden');
-    
-    if (form) {
-      Object.entries(cita).forEach(([key, value]) => {
-        const element = form.elements.namedItem(key) as HTMLInputElement | null;
-        if (element) {
+async function openEditModal(cita: Consulta) {
+  const modal = document.getElementById('editModal');
+  const form = document.getElementById('editForm') as HTMLFormElement;
+  
+  await cargarSelectores();
+  modal?.classList.remove('hidden');
+  
+  if (form) {
+    Object.entries(cita).forEach(([key, value]) => {
+      const element = form.elements.namedItem(key) as HTMLInputElement | null;
+      if (element) {
+        if (key === 'telefonoPaciente') {
+          const areaCode = value.slice(0, value.indexOf(' '));
+          const phoneNumber = value.slice(value.indexOf(' ') + 1);
+          (form.elements.namedItem('areaCode') as HTMLInputElement).value = areaCode;
+          (form.elements.namedItem('telefono') as HTMLInputElement).value = phoneNumber;
+        } else {
           element.value = value.toString();
         }
-      });
-    }
+      }
+    });
   }
+}
 
   function closeEditModal() {
     const modal = document.getElementById('editModal');
@@ -371,16 +388,21 @@ const obtenerConsultas = async () => {
     form?.reset();
   }
 
-  async function handleEditFormSubmit(e: SubmitEvent) {
+	async function handleEditFormSubmit(e: SubmitEvent) {
   e.preventDefault();
   const form = e.target as HTMLFormElement;
   const formData = new FormData(form);
-    
+  
+  const areaCode = formData.get('areaCode')?.toString().trim();
+  const telefono = formData.get('telefono')?.toString().trim();
+  const telefonoPaciente = `${areaCode}${telefono}`;
+  
   const citaData = {
     id: parseInt(formData.get('id') as string),
     diaConsulta: formData.get('diaConsulta'),
     horaConsulta: formData.get('horaConsulta'),
     nombrePaciente: formData.get('nombrePaciente'),
+    telefonoPaciente: telefonoPaciente,
     nombreMedico: formData.get('nombreMedico'),
     problema: formData.get('problema'),
     tratamiento: formData.get('tratamiento'),

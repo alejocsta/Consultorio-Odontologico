@@ -173,17 +173,17 @@ import LayoutCommon from "../app/LayoutCommon.astro";
         .map((select) => select.value)
         .filter((tratamiento) => tratamiento !== '');
 
-      const consultaData = {
-        id: nextId,
-        diaConsulta: formData.get('diaConsulta'),
-        horaConsulta: formData.get('horaConsulta'),
-        nombrePaciente: pacienteData.nombre,
-        telefonoPaciente: pacienteData.celular,
-        nombreMedico: formData.get('nombreMedico'),
-        problema: formData.get('problema'),
-        tratamientos: tratamientosSeleccionados,
-        estado: 'activa',
-      };
+				const consultaData = {
+  id: nextId,
+  diaConsulta: formData.get('diaConsulta'),
+  horaConsulta: formData.get('horaConsulta'),
+  nombrePaciente: pacienteData.nombre,
+  telefonoPaciente: `${pacienteData.areaCode}${pacienteData.telefono}`,
+  nombreMedico: formData.get('nombreMedico'),
+  problema: formData.get('problema'),
+  tratamientos: tratamientosSeleccionados,
+  estado: 'activa',
+};
 
       console.log('Datos a enviar:', consultaData);
 
@@ -270,43 +270,37 @@ import LayoutCommon from "../app/LayoutCommon.astro";
     cargarTratamientos(select);
   });
 
-  async function cargarPacientes() {
-    try {
-      const response = await fetch('/api/pacientes');
-      if (!response.ok) throw new Error('Error al cargar pacientes');
+	async function cargarPacientes() {
+  try {
+    const response = await fetch('/api/paciente');
+    if (!response.ok) throw new Error('Error al cargar pacientes');
 
-      const pacientes = await response.json();
-      console.log('Pacientes cargados:', pacientes);
+    const data = await response.json();
+    const pacientes = data.pacientes;
+    console.log('Pacientes cargados:', pacientes);
 
-      const selectPaciente = document.getElementById('nombrePaciente');
+    const selectPaciente = document.getElementById('nombrePaciente');
 
-      if (!selectPaciente) {
-        throw new Error('No se encontró el elemento select para pacientes');
-      }
+    selectPaciente.innerHTML = '<option value="">Seleccione un paciente</option>';
 
-      while (selectPaciente.options.length > 1) {
-        selectPaciente.remove(1);
-      }
+    pacientes.forEach((paciente) => {
+      const option = document.createElement('option');
+      const pacienteData = {
+        dni: paciente.dni,
+        nombre: paciente.nombre,
+        areaCode: paciente.areaCode,
+        telefono: paciente.telefono,
+      };
 
-      pacientes.forEach((paciente) => {
-        const option = document.createElement('option');
-        const pacienteData = {
-          dni: paciente.dni,
-          nombre: paciente.name,
-          celular: paciente.telefono,
-        };
-
-        option.value = JSON.stringify(pacienteData);
-        option.textContent = `${paciente.name} - DNI: ${paciente.dni}`;
-        selectPaciente.appendChild(option);
-      });
-
-      console.log('Opciones de pacientes cargadas:', selectPaciente.options.length);
-    } catch (error) {
-      console.error('Error al cargar pacientes:', error);
-      alert('Error al cargar la lista de pacientes: ' + error.message);
-    }
+      option.value = JSON.stringify(pacienteData);
+      option.textContent = `${paciente.nombre} - DNI: ${paciente.dni}`;
+      selectPaciente.appendChild(option);
+    });
+  } catch (error) {
+    console.error('Error al cargar pacientes:', error);
+    alert('Error al cargar la lista de pacientes: ' + error.message);
   }
+}
 
   async function cargarTratamientos(selectElement) {
     try {
@@ -327,26 +321,27 @@ import LayoutCommon from "../app/LayoutCommon.astro";
   }
 
   async function cargarMedicos() {
-    try {
-      const response = await fetch('/api/medicos');
-      if (!response.ok) throw new Error('Error al cargar médicos');
+  try {
+    const response = await fetch('/api/medico');  // Changed from '/api/medicos'
+    if (!response.ok) throw new Error('Error al cargar médicos');
 
-      const medicos = await response.json();
-      const selectMedico = document.getElementById('nombreMedico');
+    const data = await response.json();
+    const medicos = data.medicos;  // Extract medicos from the response
+    const selectMedico = document.getElementById('nombreMedico');
 
-      if (selectMedico) {
-        medicos.forEach((medico) => {
-          const option = document.createElement('option');
-          option.value = medico.nombre;
-          option.textContent = `${medico.nombre} - ${medico.especialidad}`;
-          selectMedico.appendChild(option);
-        });
-      }
-    } catch (error) {
-      console.error('Error al cargar médicos:', error);
-      alert('Error al cargar la lista de médicos');
+    if (selectMedico) {
+      medicos.forEach((medico) => {
+        const option = document.createElement('option');
+        option.value = medico.nombre;
+        option.textContent = `${medico.nombre} - ${medico.especialidad}`;
+        selectMedico.appendChild(option);
+      });
     }
+  } catch (error) {
+    console.error('Error al cargar médicos:', error);
+    alert('Error al cargar la lista de médicos');
   }
+}
 
   document.addEventListener('DOMContentLoaded', () => {
     cargarMedicos();

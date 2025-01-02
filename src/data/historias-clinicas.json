@@ -24,5 +24,31 @@
       "anotacionesMedico": ""
     },
     "fechaCreacion": "2024-12-31T11:39:05.752Z"
+  },
+  {
+    "id": "1",
+    "paso1": {
+      "enfermedades": "",
+      "tratamientoMedico": "",
+      "medicamentos": "",
+      "enfermedadInfectoInfecciosa": "",
+      "cantidadCigarrillos": "",
+      "mesesEmbarazo": "",
+      "otrasEnfermedades": "",
+      "alergias": "",
+      "enfermedadTransmisionSexual": "",
+      "motivoConsulta": ""
+    },
+    "paso2": {
+      "tratamientoOdontologico": "",
+      "rangoDolor": "",
+      "tipoDolor": "",
+      "fracturas": ""
+    },
+    "paso3": {
+      "anormalidadBucal": "",
+      "anotacionesMedico": ""
+    },
+    "fechaCreacion": "2024-12-31T20:39:21.017Z"
   }
 ]
