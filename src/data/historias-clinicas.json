@@ -1,0 +1,14 @@
+[
+  {
+    "id": "2",
+    "paso1": {},
+    "paso2": {},
+    "paso3": {
+      "anormalidadBucal": "",
+      "sangradoEncias": true,
+      "hinchazanCara": true,
+      "anotacionesMedico": ""
+    },
+    "fechaCreacion": "2025-01-03T15:28:01.201Z"
+  }
+]

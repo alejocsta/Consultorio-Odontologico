@@ -71,7 +71,6 @@ const obtenerConsultas = async () => {
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-700">
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">ID</th>
               <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">Fecha</th>
               <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">Hora</th>
               <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">Paciente</th>
@@ -188,9 +187,15 @@ const obtenerConsultas = async () => {
   let consultasFiltradas: Consulta[] = [];
 
   // Funciones de utilidad
-  function showNotification(message: string, type: 'success' | 'error' = 'success') {
-    alert(message);
-  }
+	function showNotification(message: string, type: 'success' | 'error' = 'success') {
+  const notification = document.createElement('div');
+  notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 text-white ${
+    type === 'success' ? 'bg-green-500' : 'bg-red-500'
+  }`;
+  notification.textContent = message;
+  document.body.appendChild(notification);
+  setTimeout(() => notification.remove(), 3000);
+}
 
   function getEstadoClase(estado: string): string {
     const clases = {
@@ -202,64 +207,55 @@ const obtenerConsultas = async () => {
   }
 
   // Funciones principales
-  async function cargarConsultas() {
-    try {
-      const response = await fetch('/api/citas');
-      consultas = await response.json();
-      consultasFiltradas = [...consultas];
-      renderizarTabla();
-    } catch (error) {
-      console.error('Error al cargar consultas:', error);
-      showNotification('Error al cargar las consultas', 'error');
-    }
-  }
+	async function cargarConsultas() {
+  const BASE_URL = 'http://localhost:5000/api';
+  try {
+    const response = await fetch(`${BASE_URL}/citas/todas`);
+    if (!response.ok) throw new Error('Error al obtener citas');
+    
+    const data = await response.json();
+    console.log('Citas cargadas:', data); // Debug
 
-	function renderizarTabla() {
+    consultas = data;
+    consultasFiltradas = [...consultas];
+    renderizarTabla();
+  } catch (error) {
+    console.error('Error:', error);
+    showNotification('Error al cargar las consultas', 'error');
+  }
+}
+
+function renderizarTabla() {
   const tbody = document.getElementById('consultasTableBody');
   if (!tbody) return;
 
-  // Ordenar las consultas por día y hora en orden descendente (de más cercana a más lejana)
-  consultasFiltradas.sort((a, b) => {
-    const dateA = new Date(`${a.diaConsulta}T${a.horaConsulta}`);
-    const dateB = new Date(`${b.diaConsulta}T${b.horaConsulta}`);
-    return dateB - dateA; // Orden descendente
-  });
-
-  // Generar el contenido de la tabla
   tbody.innerHTML = consultasFiltradas.map(consulta => `
     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-      <td class="whitespace-nowrap px-6 py-4">${consulta.id}</td>
-      <td class="whitespace-nowrap px-6 py-4">${consulta.diaConsulta}</td>
-      <td class="whitespace-nowrap px-6 py-4">${consulta.horaConsulta}</td>
-      <td class="whitespace-nowrap px-6 py-4">${consulta.nombrePaciente}</td>
-      <td class="whitespace-nowrap px-6 py-4">${consulta.nombreMedico}</td>
-      <td class="whitespace-nowrap px-6 py-4">${consulta.problema}</td>
+      <td class="whitespace-nowrap px-6 py-4">${new Date(consulta.fecha).toLocaleDateString() || ''}</td>
+      <td class="whitespace-nowrap px-6 py-4">${new Date(consulta.fecha).toLocaleTimeString() || ''}</td>
+      <td class="whitespace-nowrap px-6 py-4">${consulta.pacienteId?.nombre || ''}</td>
+      <td class="whitespace-nowrap px-6 py-4">${consulta.medicoId?.nombre || ''}</td>
+      <td class="whitespace-nowrap px-6 py-4">${consulta.motivo || ''}</td>
       <td class="whitespace-nowrap px-6 py-4">
         <span class="rounded-full px-2 py-1 text-xs font-semibold ${getEstadoClase(consulta.estado)}">
-          ${consulta.estado}
+          ${consulta.estado || ''}
         </span>
       </td>
-      <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+      <td class="px-6 py-4">
         <div class="flex space-x-2">
-          <button 
-            onclick="openEditModal(${JSON.stringify(consulta).replace(/\"/g, '&quot;')})"
-            class="edit-button p-2 text-blue-600 hover:text-blue-700 focus:outline-none"
-            title="Editar"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+          <button onclick="openEditModal(${JSON.stringify(consulta).replace(/\"/g, '&quot;')})"
+                  class="edit-button p-2 text-blue-600 hover:text-blue-700">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
             </svg>
           </button>
-          <button
-            onclick="eliminarCita(${consulta.id})"
-            class="delete-button p-2 text-red-600 hover:text-red-700 focus:outline-none"
-            title="Eliminar"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M3 6h18"></path>
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
-              <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          <button onclick="eliminarCita('${consulta._id}')"
+                  class="delete-button p-2 text-red-600 hover:text-red-700">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M3 6h18"/>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+              <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
             </svg>
           </button>
         </div>
@@ -288,34 +284,31 @@ const obtenerConsultas = async () => {
     renderizarTabla();
   }
 
-  async function eliminarCita(id: number) {
-    if (!confirm('¿Está seguro que desea eliminar esta cita? Esta acción no se puede deshacer.')) {
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/eliminar-cita', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ id })
-      });
-
-      const data = await response.json();
-			if (!response.ok) {
-        throw new Error(data.message || 'Error al eliminar la cita');
+	async function eliminarCita(id: string) {
+  if (!confirm('¿Está seguro que desea eliminar esta cita?')) return;
+  
+  const BASE_URL = 'http://localhost:5000/api';
+  
+  try {
+    const response = await fetch(`${BASE_URL}/citas/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Origin': 'http://localhost:4321'
       }
+    });
 
-      consultas = consultas.filter(consulta => consulta.id !== id);
-      consultasFiltradas = consultasFiltradas.filter(consulta => consulta.id !== id);
-      renderizarTabla();
-      showNotification('Cita eliminada exitosamente');
-    } catch (error) {
-      console.error('Error:', error);
-      showNotification('Error al eliminar la cita: ' + (error instanceof Error ? error.message : 'Error desconocido'), 'error');
-    }
+    if (!response.ok) throw new Error('Error al eliminar la cita');
+
+    consultas = consultas.filter(consulta => consulta._id !== id);
+    consultasFiltradas = consultasFiltradas.filter(consulta => consulta._id !== id);
+    renderizarTabla();
+    showNotification('Cita eliminada exitosamente');
+  } catch (error) {
+    console.error('Error:', error);
+    showNotification('Error al eliminar la cita', 'error');
   }
+}
 
   async function cargarSelectores() {
   try {
