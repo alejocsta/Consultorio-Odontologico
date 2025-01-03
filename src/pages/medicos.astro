@@ -160,33 +160,38 @@ const handleDelete = async (email, nombre) => {
 
 // En handleEdit
 const handleEdit = async (medico) => {
-  try {
-    const response = await fetch(`${BASE_URL}/medico/findByEmail/${state.modals.edit.selectedMedico.email}`);
-    const data = await response.json();
-    
-    if (!data.medico) {
-      throw new Error('No se encontró el médico');
-    }
+ try {
+   const response = await fetch(`${BASE_URL}/medico/findByEmail/${state.modals.edit.selectedMedico.email}`);
+   const data = await response.json();
+   
+   if (!data.medico) {
+     throw new Error('No se encontró el médico');
+   }
 
-    const updateResponse = await fetch(`${BASE_URL}/medico/updateById/${data.medico._id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Origin': 'http://localhost:4321'
-      },
-      body: JSON.stringify(medico)
-    });
+   const medicoConClave = {
+     ...medico,
+     clave: data.medico.clave
+   };
 
-    if (!updateResponse.ok) {
-      throw new Error(`Error del servidor: ${updateResponse.status}`);
-    }
+   const updateResponse = await fetch(`${BASE_URL}/medico/updateById/${data.medico._id}`, {
+     method: 'PUT',
+     headers: {
+       'Content-Type': 'application/json',
+       'Origin': 'http://localhost:4321'
+     },
+     body: JSON.stringify(medicoConClave)
+   });
 
-    showNotification('Médico actualizado correctamente');
-    await actualizarTabla();
-    closeEditModal();
-  } catch (error) {
-    showNotification(error.message, 'error');
-  }
+   if (!updateResponse.ok) {
+     throw new Error(`Error del servidor: ${updateResponse.status}`);
+   }
+
+   showNotification('Médico actualizado correctamente');
+   await actualizarTabla();
+   closeEditModal();
+ } catch (error) {
+   showNotification(error.message, 'error');
+ }
 };
 
 // Modal handlers
@@ -197,10 +202,17 @@ const openEditModal = (medico) => {
   
   const form = document.getElementById('editForm');
   if (form) {
-    Object.entries(medico).forEach(([key, value]) => {
-      const input = form.elements[key];
-      if (input) input.value = value;
-    });
+    // Primero obtener la clave actual
+    fetch(`${BASE_URL}/medico/findByEmail/${medico.email}`)
+      .then(response => response.json())
+      .then(data => {
+        form.elements.nombre.value = medico.nombre || '';
+        form.elements.email.value = medico.email || '';
+        form.elements.especialidad.value = medico.especialidad || '';
+        form.elements.celular.value = medico.celular || '';
+        form.elements.nMatricula.value = medico.nMatricula || '';
+        form.elements.clave.value = data.medico.clave || '';
+      });
   }
 };
 
