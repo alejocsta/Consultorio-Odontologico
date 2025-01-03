@@ -1,0 +1,99 @@
+---
+// LoginPage.astro
+---
+
+<main class="grid min-h-screen place-items-center">
+  <form id="loginForm" class="w-full max-w-sm rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+    <h1 class="mb-6 text-2xl font-bold text-gray-800 dark:text-white">Sign In</h1>
+    <div class="mb-4">
+      <label for="email" class="mb-2 block font-bold text-gray-700 dark:text-gray-300">Email</label>
+      <input type="email" id="email" name="email" required 
+        class="w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+      />
+    </div>
+    <div class="mb-6">
+      <label for="password" class="mb-2 block font-bold text-gray-700 dark:text-gray-300">Password</label>
+      <input type="password" id="password" name="password" required
+        class="w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+      />
+    </div>
+    <button type="submit" 
+      class="w-full rounded-md bg-blue-500 py-2 px-4 font-bold text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+    >
+      Sign In
+    </button>
+		<div class="text-sm font-medium text-gray-500 dark:text-gray-400">
+			aun no te has registrado? <a href="/logup" class="text-primary-700 hover:underline dark:text-primary-500">Registrate aca</a>
+		</div>
+    <p id="errorMessage" class="mt-4 text-red-500"></p>
+  </form>
+</main>
+
+<script>
+interface LoginResponse {
+  success: boolean;
+  message: string;
+  rol?: string;
+}
+
+const validateUser = async (email: string, password: string): Promise<LoginResponse> => {
+  try {
+    const response = await fetch('http://localhost:5000/api/login/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Error al iniciar sesión. Verifica tus credenciales.');
+    }
+
+    const data = await response.json();
+    
+    if (!data.message || data.message !== 'Login exitoso') {
+      throw new Error(data.message || 'Credenciales inválidas');
+    }
+
+    return {
+      success: true,
+      message: 'Autenticación exitosa',
+      rol: data.rol,
+    };
+  } catch (error) {
+    console.error('Error en validateUser:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Error en la autenticación',
+    };
+  }
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('loginForm') as HTMLFormElement;
+  const errorElement = document.getElementById('errorMessage');
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    
+    const emailInput = document.getElementById('email') as HTMLInputElement;
+    const passwordInput = document.getElementById('password') as HTMLInputElement;
+    
+    try {
+      const response = await validateUser(emailInput.value, passwordInput.value);
+
+      if (response.success && response.rol) {
+        localStorage.setItem('role', response.rol);
+        window.location.href = '/';
+      } else if (errorElement) {
+        errorElement.textContent = response.message;
+      }
+    } catch (error) {
+      if (errorElement) {
+        errorElement.textContent = error instanceof Error ? error.message : 'Error en la autenticación';
+      }
+    }
+  });
+});
+</script>

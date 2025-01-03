@@ -1,0 +1,79 @@
+---
+import { asset} from '../lib/data.js';
+---
+<script>
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    const formData = {
+      email: document.getElementById('email').value,
+      password: document.getElementById('password').value,
+      rol: document.getElementById('rol').value
+    };
+
+    try {
+      const response = await fetch('http://localhost:5000/api/login/registro', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+      });
+			console.log(JSON.stringify(formData));
+
+      if (response.ok) {
+        window.location.href = '/login';
+      } else {
+        alert('Registration failed. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('An error occurred. Please try again.');
+    }
+  };
+
+  // Add event listener when content loads
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelector('form').addEventListener('submit', handleSubmit);
+  });
+</script>
+
+<div class="w-full flex flex-col items-center justify-center px-6 pt-8 mx-auto pt:mt-0 dark:bg-gray-900">
+  <a href="#" class="flex items-center justify-center mb-8 text-2xl font-semibold lg:mb-10 dark:text-white">
+    <img src={asset('images/logo.svg')} alt="FlowBite Logo" class="mr-4 h-11" />
+    <span>Flowbite</span>
+  </a>
+  
+  <div class="w-full max-w-xl p-6 space-y-8 sm:p-8 bg-white rounded-lg shadow dark:bg-gray-800">
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+      Create a Free Account
+    </h2>
+    <form class="mt-8 space-y-6">
+      <div>
+        <label for="email" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your email</label>
+        <input type="email" name="email" id="email" class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="name@company.com" required />
+      </div>
+      
+      <div>
+        <label for="password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Password</label>
+        <input type="password" name="password" id="password" placeholder="----------" class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" required />
+      </div>
+
+      <div>
+        <label for="rol" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Role</label>
+        <select id="rol" name="rol" class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" required>
+          <option value="">Select a role</option>
+          <option value="odontologo">Odontologo</option>
+          <option value="secretaria">Secretaria</option>
+        </select>
+      </div>
+
+
+      <button type="submit" class="w-full px-5 py-3 text-base font-medium text-center text-white bg-primary-700 rounded-lg hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 sm:w-auto dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">Create account</button>
+      
+      <div class="text-sm font-medium text-gray-500 dark:text-gray-400">
+        Ya tiene una cuenta? <a href="/login" class="text-primary-700 hover:underline dark:text-primary-500">Accede aqui</a>
+      </div>
+    </form>
+  </div>
+</div>
