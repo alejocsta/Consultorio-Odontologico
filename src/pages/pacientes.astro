@@ -250,7 +250,19 @@ const handleDelete = async (dni, nombre, row, button) => {
 
 const handleEdit = async (patient, row, button) => {
   try {
-    const response = await fetch(`${BASE_URL}/paciente/updateByID/${patient._id}`, {
+		// el response 2 es porque vos sacas los datos del formulario y no de la db, y ahi no tenes el id, entonces haces un get para obtener el id y despues poder hacer el put. es una chanchada pero no se arreglarlo jajac
+		//alejo putoooo
+		//trolo
+		const response22 = await fetch(`${BASE_URL}/paciente/findByDni/${patient.dni}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Origin': 'http://localhost:4321'
+      },
+    });
+		const dataaa = await response22.json();
+		const id = dataaa.paciente.id
+    const response = await fetch(`${BASE_URL}/paciente/updateById/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
