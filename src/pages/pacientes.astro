@@ -129,7 +129,7 @@ async function actualizarTabla() {
 
 // Manejadores de Modales
 const openEditModal = async (patient) => {
-  state.modals.edit.selectedPatient = { ...patient };
+  state.modals.edit.selectedPatient = { ...patient, originalDni: patient.dni };
   state.modals.edit.isOpen = true;
 
   const modal = document.getElementById('editModal');
@@ -253,7 +253,8 @@ const handleEdit = async (patient, row, button) => {
 		// el response 2 es porque vos sacas los datos del formulario y no de la db, y ahi no tenes el id, entonces haces un get para obtener el id y despues poder hacer el put. es una chanchada pero no se arreglarlo jajac
 		//alejo putoooo
 		//trolo
-		const response22 = await fetch(`${BASE_URL}/paciente/findByDni/${patient.dni}`, {
+		const originalDni = state.modals.edit.selectedPatient.originalDni;
+		const response22 = await fetch(`${BASE_URL}/paciente/findByDni/${originalDni}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -407,10 +408,7 @@ document.addEventListener('DOMContentLoaded', () => {
     areaCode: form.elements.areaCode.value
   };
 
-  const row = document.querySelector(`tr[data-dni="${patient.dni}"]`);
-  const button = row.querySelector('.edit-button');
-
-  await handleEdit(patient, row, button);
+  await handleEdit(patient);
 });
 })
 </script>
