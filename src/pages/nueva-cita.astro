@@ -151,11 +151,18 @@ import LayoutProtected from "../app/LayoutProtected.astro";
     }
 
     const pacienteData = JSON.parse(pacienteDataString);
-    console.log('pacienteData:', pacienteData); // Debug the parsed data
-
-    if (!pacienteData.id) {
-      throw new Error('ID de paciente no encontrado');
-    }
+    
+    // Obtener y procesar los tratamientos seleccionados
+    const tratamientosSelects = form.querySelectorAll('select[name="tratamientos[]"]');
+    const tratamientos = Array.from(tratamientosSelects)
+      .map(select => {
+        if (select.value) {
+          // Parsear el JSON almacenado en el value
+          return JSON.parse(select.value);
+        }
+        return null;
+      })
+      .filter(tratamiento => tratamiento !== null); // Eliminar valores nulos
 
     const citaData = {
       pacienteId: pacienteData.id,
@@ -164,10 +171,11 @@ import LayoutProtected from "../app/LayoutProtected.astro";
       motivo: formData.get('problema'),
       estado: 'pendiente',
       notas: formData.get('problema'),
-      monto: 0
+      monto: 0,
+      tratamientos: tratamientos // Ahora incluye todos los campos necesarios
     };
 
-    console.log('citaData being sent:', citaData); // Debug the data being sent
+    console.log('citaData being sent:', citaData);
 
     const response = await fetch(`${BASE_URL}/citas/create`, {
       method: 'POST',
@@ -179,7 +187,7 @@ import LayoutProtected from "../app/LayoutProtected.astro";
     });
 
     const responseData = await response.json();
-    console.log('Server response:', responseData); // Debug server response
+    console.log('Server response:', responseData);
 
     if (!response.ok) throw new Error(responseData.message || 'Error al crear la cita');
 
@@ -252,7 +260,7 @@ import LayoutProtected from "../app/LayoutProtected.astro";
 
 	
 
-async function cargarTratamientos(selectElement) {
+	async function cargarTratamientos(selectElement) {
   try {
     const response = await fetch(`${BASE_URL}/tratamientos`);
     if (!response.ok) throw new Error('Error al cargar tratamientos');
@@ -260,8 +268,14 @@ async function cargarTratamientos(selectElement) {
     const data = await response.json();
     data.forEach((tratamiento) => {
       const option = document.createElement('option');
-      option.value = tratamiento.nombre;
+      // Guardar el objeto tratamiento completo como valor
+      option.value = JSON.stringify({
+        _id: tratamiento._id,
+        nombre: tratamiento.nombre,
+        descripcion: tratamiento.descripcion
+      });
       option.textContent = tratamiento.nombre;
+      option.className = 'text-gray-900 dark:text-gray-100';
       selectElement.appendChild(option);
     });
   } catch (error) {
