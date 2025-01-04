@@ -1,5 +1,6 @@
 ---
 import LayoutCommon from "../app/LayoutCommon.astro";
+import LayoutProtected from "../app/LayoutProtected.astro";
 import consultas from '../data/pacientes.json';
 ---
 
@@ -413,6 +414,7 @@ document.addEventListener('DOMContentLoaded', () => {
 })
 </script>
 
+<LayoutProtected>
 <LayoutCommon>
   <div class="min-h-screen bg-gradient-to-r from-slate-100 to-slate-200 p-4 text-slate-800 dark:from-slate-900 dark:to-slate-800 dark:text-slate-100 lg:p-16">
     <div class="mx-auto max-w-6xl">
@@ -615,3 +617,4 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
   </div>
 </LayoutCommon>
+</LayoutProtected>

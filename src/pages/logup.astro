@@ -1,79 +1,138 @@
 ---
-import { asset} from '../lib/data.js';
+import LayoutCommon from '../app/LayoutCommon.astro';
+import { asset } from '../lib/data.js';
 ---
-<script>
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    const formData = {
-      email: document.getElementById('email').value,
-      password: document.getElementById('password').value,
-      rol: document.getElementById('rol').value
-    };
 
-    try {
-      const response = await fetch('http://localhost:5000/api/login/registro', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      });
-			console.log(JSON.stringify(formData));
+<LayoutCommon>
+<div class="flex flex-col items-center justify-center min-h-screen px-6 mx-auto dark:bg-gray-900">
+  <div class="w-full max-w-md p-8 space-y-3 rounded-xl bg-white dark:bg-gray-800">
+    <h1 class="text-2xl font-bold text-center text-gray-700 dark:text-white">
+      Registro de Usuario
+    </h1>
 
-      if (response.ok) {
-        window.location.href = '/login';
-      } else {
-        alert('Registration failed. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      alert('An error occurred. Please try again.');
-    }
-  };
-
-  // Add event listener when content loads
-  document.addEventListener('DOMContentLoaded', () => {
-    document.querySelector('form').addEventListener('submit', handleSubmit);
-  });
-</script>
-
-<div class="w-full flex flex-col items-center justify-center px-6 pt-8 mx-auto pt:mt-0 dark:bg-gray-900">
-  <a href="#" class="flex items-center justify-center mb-8 text-2xl font-semibold lg:mb-10 dark:text-white">
-    <img src={asset('images/logo.svg')} alt="FlowBite Logo" class="mr-4 h-11" />
-    <span>Flowbite</span>
-  </a>
-  
-  <div class="w-full max-w-xl p-6 space-y-8 sm:p-8 bg-white rounded-lg shadow dark:bg-gray-800">
-    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
-      Create a Free Account
-    </h2>
-    <form class="mt-8 space-y-6">
+    <form id="signupForm" class="space-y-6" novalidate>
+      <!-- Email y Contraseña - Siempre visibles -->
       <div>
-        <label for="email" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your email</label>
-        <input type="email" name="email" id="email" class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="name@company.com" required />
-      </div>
-      
-      <div>
-        <label for="password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Password</label>
-        <input type="password" name="password" id="password" placeholder="----------" class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" required />
+        <label for="email" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Correo electrónico</label>
+        <input type="email" name="email" id="email" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" required>
       </div>
 
       <div>
-        <label for="rol" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Role</label>
-        <select id="rol" name="rol" class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" required>
-          <option value="">Select a role</option>
-          <option value="odontologo">Odontologo</option>
-          <option value="secretaria">Secretaria</option>
+        <label for="password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Contraseña</label>
+        <input type="password" name="password" id="password" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" required>
+      </div>
+
+      <!-- Selector de Rol -->
+      <div>
+        <label for="rol" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Rol</label>
+        <select id="rol" name="rol" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" required>
+          <option value="">Selecciona un rol</option>
+          <option value="medico">Médico/a</option>
+          <option value="secretaria">Secretario/a</option>
         </select>
       </div>
 
+      <!-- Campos dinámicos según rol -->
+      <div id="camposMedico" class="hidden space-y-6">
+        <div>
+          <label for="nombre" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Nombre completo</label>
+          <input type="text" name="nombre" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
+        </div>
+        <div>
+          <label for="especialidad" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Especialidad</label>
+          <input type="text" name="especialidad" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
+        </div>
+        <div>
+          <label for="celular" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Celular</label>
+          <input type="tel" name="celular" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
+        </div>
+        <div>
+          <label for="nMatricula" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Número de Matrícula</label>
+          <input type="text" name="nMatricula" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
+        </div>
+      </div>
 
-      <button type="submit" class="w-full px-5 py-3 text-base font-medium text-center text-white bg-primary-700 rounded-lg hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 sm:w-auto dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">Create account</button>
-      
-      <div class="text-sm font-medium text-gray-500 dark:text-gray-400">
-        Ya tiene una cuenta? <a href="/login" class="text-primary-700 hover:underline dark:text-primary-500">Accede aqui</a>
+      <div id="camposSecretaria" class="hidden space-y-6">
+        <div>
+          <label for="nombre" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Nombre completo</label>
+          <input type="text" name="nombre" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
+        </div>
+        <div>
+          <label for="celular" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Celular</label>
+          <input type="tel" name="celular" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
+        </div>
+      </div>
+
+      <button type="submit" id="submitBtn" class="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center" disabled>
+        Crear cuenta
+      </button>
+
+      <div class="text-sm font-medium text-gray-500 dark:text-gray-300">
+        ¿Ya tienes una cuenta? <a href="/login" class="text-blue-700 hover:underline dark:text-blue-500">Inicia sesión</a>
       </div>
     </form>
   </div>
 </div>
+</LayoutCommon>
+
+<script>
+const form = document.getElementById('signupForm');
+const rolSelect = document.getElementById('rol');
+const camposMedico = document.getElementById('camposMedico');
+const camposSecretaria = document.getElementById('camposSecretaria');
+const submitBtn = document.getElementById('submitBtn');
+
+rolSelect.addEventListener('change', () => {
+  const selectedRol = rolSelect.value;
+  
+  camposMedico.classList.toggle('hidden', selectedRol !== 'medico');
+  camposSecretaria.classList.toggle('hidden', selectedRol !== 'secretaria');
+  
+  // Resetear required en todos los campos
+  form.querySelectorAll('input').forEach(input => input.required = false);
+  
+  // Establecer required según el rol
+  const requiredFields = ['email', 'password', 'nombre', 'celular'];
+  if (selectedRol === 'medico') {
+    requiredFields.push('especialidad', 'nMatricula');
+  }
+  
+  requiredFields.forEach(field => {
+    const input = form.querySelector(`[name="${field}"]`);
+    if (input) input.required = true;
+  });
+});
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const formData = new FormData(form);
+  const data = Object.fromEntries(formData.entries());
+  
+  try {
+    const response = await fetch('http://localhost:5000/api/login/registro', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    });
+
+    if (response.ok) {
+      window.location.href = '/login';
+    } else {
+      const error = await response.json();
+      alert(error.message || 'Error en el registro');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error en la conexión');
+  }
+});
+
+// Validación del formulario
+form.addEventListener('input', () => {
+  const isValid = form.checkValidity();
+  submitBtn.disabled = !isValid;
+});
+</script>

@@ -1,10 +1,12 @@
 ---
 import FooterSidebar from './FooterSidebar.astro';
 import LayoutCommon from './LayoutCommon.astro';
+import LayoutProtected from './LayoutProtected.astro';
 import NavBarSidebar from './NavBarSidebar.astro';
 import SideBar from './SideBar.astro';
 ---
 
+<LayoutProtected>
 <LayoutCommon>
 	<NavBarSidebar />
 
@@ -21,3 +23,4 @@ import SideBar from './SideBar.astro';
 		</div>
 	</div>
 </LayoutCommon>
+</LayoutProtected>
