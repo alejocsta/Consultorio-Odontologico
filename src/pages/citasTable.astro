@@ -87,7 +87,6 @@ interface Consulta {
 
 
 <!-- Modal de Edición -->
-<!-- Modal de Edición -->
 <div id="editModal" class="fixed inset-0 flex items-center justify-center z-50 hidden">
   <div class="absolute inset-0 bg-black opacity-50"></div>
   <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-1/2">
@@ -166,12 +165,12 @@ interface Consulta {
           <div id="tratamientosEditContainer" class="space-y-2">
             <div class="flex items-center gap-2">
               <select
-                name="tratamientos[]"
-                required
-                class="mt-1 w-full rounded-md border border-gray-300 bg-white p-2 text-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-              >
-                <option value="">Seleccione un tratamiento</option>
-              </select>
+  name="tratamientos[]"
+  required
+  class="mt-1 w-full rounded-md border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:border-blue-500 focus:ring-blue-500"
+>
+  <option value="" class="text-gray-900 dark:text-gray-100">Seleccione un tratamiento</option>
+</select>
               <button
                 type="button"
                 id="addTratamientoEditBtn"
@@ -364,6 +363,7 @@ interface Consulta {
       const option = document.createElement('option');
       option.value = tratamiento._id;
       option.textContent = tratamiento.nombre || tratamiento.nombreTratamiento;
+			option.className = 'text-gray-900 dark:text-gray-100';
       selectElement.appendChild(option);
     });
   } catch (error) {
@@ -429,13 +429,15 @@ interface Consulta {
     const select = document.createElement('select');
     select.name = 'tratamientos[]';
     select.required = true;
-    select.classList.add(
-		'w-full',
+		select.classList.add(
+      'w-full',
       'rounded-md',
       'border',
       'border-gray-300',
       'bg-white',
       'p-2',
+      'text-gray-900',
+      'dark:text-gray-100',
       'dark:border-gray-600',
       'dark:bg-gray-700',
       'focus:border-blue-500',
@@ -499,11 +501,11 @@ interface Consulta {
         const primerGrupo = document.createElement('div');
         primerGrupo.classList.add('flex', 'items-center', 'gap-2');
         primerGrupo.innerHTML = `
-          <select
-            name="tratamientos[]"
-            required
-            class="mt-1 w-full rounded-md border border-gray-300 bg-white p-2 dark:border-gray-600 dark:bg-gray-700 focus:border-blue-500 focus:ring-blue-500"
-          >
+           <select
+    name="tratamientos[]"
+    required
+    class="mt-1 w-full rounded-md border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:border-blue-500 focus:ring-blue-500"
+  >
             <option value="">Seleccione un tratamiento</option>
           </select>
           <button
@@ -535,22 +537,23 @@ interface Consulta {
                 const tratamientoGroup = document.createElement('div');
                 tratamientoGroup.classList.add('flex', 'items-center', 'gap-2', 'mt-2');
 
-                const select = document.createElement('select');
-                select.name = 'tratamientos[]';
-                select.required = true;
-                select.classList.add(
-                  'w-full',
-                  'rounded-md',
-                  'border',
-                  'border-gray-300',
-                  'bg-white',
-                  'p-2',
-                  'dark:border-gray-600',
-                  'dark:bg-gray-700',
-                  'focus:border-blue-500',
-                  'focus:ring-blue-500'
-                );
-
+								const select = document.createElement('select');
+select.name = 'tratamientos[]';
+select.required = true;
+select.classList.add(
+  'w-full',
+  'rounded-md',
+  'border',
+  'border-gray-300',
+  'bg-white',
+  'p-2',
+  'text-gray-900',
+  'dark:text-gray-100',
+  'dark:border-gray-600',
+  'dark:bg-gray-700',
+  'focus:border-blue-500',
+  'focus:ring-blue-500'
+);
                 await cargarTratamientoEdit(select);
                 select.value = tratamientoId;
 
@@ -649,34 +652,31 @@ interface Consulta {
 
     // Limpiar los tratamientos
     const tratamientosContainer = document.getElementById('tratamientosEditContainer');
-    if (tratamientosContainer) {
-      const primerSelect = tratamientosContainer.querySelector('select[name="tratamientos[]"]');
-      tratamientosContainer.innerHTML = '';
-      if (primerSelect) {
-        const nuevoGrupo = document.createElement('div');
-        nuevoGrupo.classList.add('flex', 'items-center', 'gap-2');
-        nuevoGrupo.innerHTML = `
-          <select
-            name="tratamientos[]"
-            required
-            class="mt-1 w-full rounded-md border border-gray-300 bg-white p-2 dark:border-gray-600 dark:bg-gray-700 focus:border-blue-500 focus:ring-blue-500"
-          >
-            <option value="">Seleccione un tratamiento</option>
-          </select>
-          <button
-            type="button"
-            id="addTratamientoEditBtn"
-            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
-            +
-          </button>
-        `;
+		if (tratamientosContainer) {
+    const nuevoGrupo = document.createElement('div');
+    nuevoGrupo.classList.add('flex', 'items-center', 'gap-2');
+    nuevoGrupo.innerHTML = `
+      <select
+        name="tratamientos[]"
+        required
+        // CAMBIAR ESTA CLASE:
+        class="mt-1 w-full rounded-md border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:border-blue-500 focus:ring-blue-500"
+      >
+        <option value="" class="text-gray-900 dark:text-gray-100">Seleccione un tratamiento</option>
+      </select>
+      <button
+        type="button"
+        id="addTratamientoEditBtn"
+        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+      >
+        +
+      </button>
+    `;
         tratamientosContainer.appendChild(nuevoGrupo);
         cargarTratamientoEdit(nuevoGrupo.querySelector('select')!);
         setupTratamientosEdit();
       }
     }
-  }
 
   function setupEventListeners() {
     document.getElementById('searchInput')?.addEventListener('input', filtrarConsultas);
