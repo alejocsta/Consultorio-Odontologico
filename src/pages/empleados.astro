@@ -126,13 +126,13 @@ import LayoutProtected from "../app/LayoutProtected.astro";
       }));
 
       // Obtener secretarias
-      const responseSecretarias = await fetch(`${BASE_URL}/secretaria/buscar`);
-      const dataSecretarias = await responseSecretarias.json();
-      const secretarias = Array.isArray(dataSecretarias) ? dataSecretarias.map(secretaria => ({
-        ...secretaria,
-        rol: 'Secretaria',
-        especialidad: '-'
-      })) : [];
+			const responseSecretarias = await fetch(`${BASE_URL}/secretaria/getAll`);
+    const dataSecretarias = await responseSecretarias.json();
+    const secretarias = dataSecretarias.secretarias.map(secretaria => ({
+      ...secretaria,
+      rol: 'Secretaria',
+      especialidad: '-'
+    }));
 
       // Combinar y ordenar por nombre
       empleadosData = [...medicos, ...secretarias].sort((a, b) => 

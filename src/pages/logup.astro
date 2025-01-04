@@ -14,57 +14,64 @@ import { asset } from '../lib/data.js';
       <!-- Email y Contraseña - Siempre visibles -->
       <div>
         <label for="email" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Correo electrónico</label>
-        <input type="email" name="email" id="email" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" required>
+        <input type="email" name="email" id="email" placeholder="ejemplo@correo.com" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" required>
       </div>
 
       <div>
         <label for="password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Contraseña</label>
-        <input type="password" name="password" id="password" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" required>
+        <input type="password" name="password" id="password" placeholder="••••••••" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" required>
       </div>
 
       <!-- Selector de Rol -->
       <div>
         <label for="rol" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Rol</label>
-        <select id="rol" name="rol" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" required>
-          <option value="">Selecciona un rol</option>
-          <option value="medico">Médico/a</option>
-          <option value="secretaria">Secretario/a</option>
-        </select>
+				<select id="rol" name="rol" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" required>
+					<option value="">Selecciona un rol</option>
+					<option value="odontologo">Médico/a</option>
+					<option value="secretaria">Secretario/a</option>
+				</select>
       </div>
 
       <!-- Campos dinámicos según rol -->
       <div id="camposMedico" class="hidden space-y-6">
         <div>
           <label for="nombre" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Nombre completo</label>
-          <input type="text" name="nombre" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
+          <input type="text" name="nombre" placeholder="Ingrese nombre completo" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
         </div>
         <div>
           <label for="especialidad" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Especialidad</label>
-          <input type="text" name="especialidad" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
+          <input type="text" name="especialidad" placeholder="Ingrese especialidad" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
         </div>
         <div>
           <label for="celular" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Celular</label>
-          <input type="tel" name="celular" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
+          <input type="tel" name="celular" placeholder="Ingrese número de celular" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
         </div>
         <div>
           <label for="nMatricula" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Número de Matrícula</label>
-          <input type="text" name="nMatricula" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
+          <input type="text" name="nMatricula" placeholder="Ingrese número de matrícula" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
         </div>
       </div>
 
       <div id="camposSecretaria" class="hidden space-y-6">
         <div>
           <label for="nombre" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Nombre completo</label>
-          <input type="text" name="nombre" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
+          <input type="text" name="nombre" placeholder="Ingrese nombre completo" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
         </div>
         <div>
           <label for="celular" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Celular</label>
-          <input type="tel" name="celular" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
+          <input type="tel" name="celular" placeholder="Ingrese número de celular" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
         </div>
       </div>
 
       <button type="submit" id="submitBtn" class="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center" disabled>
         Crear cuenta
+        <div role="status" id="loadingSpinner" class="hidden mt-2">
+          <svg aria-hidden="true" class="inline w-4 h-4 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+            <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+          </svg>
+          <span class="sr-only">Cargando...</span>
+        </div>
       </button>
 
       <div class="text-sm font-medium text-gray-500 dark:text-gray-300">
@@ -81,11 +88,18 @@ const rolSelect = document.getElementById('rol');
 const camposMedico = document.getElementById('camposMedico');
 const camposSecretaria = document.getElementById('camposSecretaria');
 const submitBtn = document.getElementById('submitBtn');
+const loadingSpinner = document.getElementById('loadingSpinner');
+
+// Función para mostrar/ocultar el spinner
+const toggleLoadingState = (isLoading) => {
+  submitBtn.disabled = isLoading;
+  loadingSpinner.classList.toggle('hidden', !isLoading);
+};
 
 rolSelect.addEventListener('change', () => {
   const selectedRol = rolSelect.value;
   
-  camposMedico.classList.toggle('hidden', selectedRol !== 'medico');
+  camposMedico.classList.toggle('hidden', selectedRol !== 'odontologo');
   camposSecretaria.classList.toggle('hidden', selectedRol !== 'secretaria');
   
   // Resetear required en todos los campos
@@ -93,7 +107,7 @@ rolSelect.addEventListener('change', () => {
   
   // Establecer required según el rol
   const requiredFields = ['email', 'password', 'nombre', 'celular'];
-  if (selectedRol === 'medico') {
+  if (selectedRol === 'odontologo') {
     requiredFields.push('especialidad', 'nMatricula');
   }
   
@@ -101,38 +115,181 @@ rolSelect.addEventListener('change', () => {
     const input = form.querySelector(`[name="${field}"]`);
     if (input) input.required = true;
   });
-});
 
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  
-  const formData = new FormData(form);
-  const data = Object.fromEntries(formData.entries());
-  
-  try {
-    const response = await fetch('http://localhost:5000/api/login/registro', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(data)
-    });
-
-    if (response.ok) {
-      window.location.href = '/login';
-    } else {
-      const error = await response.json();
-      alert(error.message || 'Error en el registro');
-    }
-  } catch (error) {
-    console.error('Error:', error);
-    alert('Error en la conexión');
-  }
+  validateForm();
 });
 
 // Validación del formulario
-form.addEventListener('input', () => {
-  const isValid = form.checkValidity();
+const validateForm = () => {
+  const selectedRol = rolSelect.value;
+  let isValid = form.checkValidity();
+
+  // Validaciones adicionales según el rol
+  if (selectedRol === 'medico') {
+    const requiredMedicoFields = ['nombre', 'especialidad', 'celular', 'nMatricula'];
+    isValid = isValid && requiredMedicoFields.every(field => {
+      const input = form.querySelector(`[name="${field}"]`);
+      return input && input.value.trim() !== '';
+    });
+  } else if (selectedRol === 'secretaria') {
+    const requiredSecretariaFields = ['nombre', 'celular'];
+    isValid = isValid && requiredSecretariaFields.every(field => {
+      const input = form.querySelector(`[name="${field}"]`);
+      return input && input.value.trim() !== '';
+    });
+  }
+
   submitBtn.disabled = !isValid;
+};
+
+form.addEventListener('input', validateForm);
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  toggleLoadingState(true);
+  
+  const formData = new FormData(form);
+  const selectedRol = formData.get('rol');
+
+  try {
+    // Primer paso: Crear el usuario con credenciales básicas
+    const credencialesUsuario = {
+      email: formData.get('email'),        // Cambiado a email según el schema
+      password: formData.get('password'),  // Cambiado a password según el schema
+      rol: selectedRol                     // Ya tendrá el valor correcto del enum
+    };
+
+    console.log('Enviando datos de usuario:', credencialesUsuario);
+
+    const responseUsuario = await fetch('http://localhost:5000/api/login/registro', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Origin': 'http://localhost:4321'
+      },
+      body: JSON.stringify(credencialesUsuario)
+    });
+
+    const responseData = await responseUsuario.json();
+    console.log('Respuesta del servidor:', responseData);
+
+    if (!responseUsuario.ok) {
+      throw new Error(responseData.message || 'Error al crear usuario');
+    }
+
+    // Segundo paso: Crear el perfil según el rol
+    if (selectedRol === 'odontologo') {  // Cambiado de 'medico' a 'odontologo'
+      const dataMedico = {
+        nombre: formData.get('nombre'),
+        email: formData.get('email'),
+        especialidad: formData.get('especialidad'),
+        celular: formData.get('celular'),
+        nMatricula: formData.get('nMatricula'),
+        clave: formData.get('password')
+      };
+
+      const responseMedico = await fetch('http://localhost:5000/api/medico/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Origin': 'http://localhost:4321'
+        },
+        body: JSON.stringify(dataMedico)
+      });
+
+      if (!responseMedico.ok) {
+        const errorData = await responseMedico.json();
+        throw new Error(errorData.message || 'Error al crear perfil de médico');
+      }
+    } 
+    else if (selectedRol === 'secretaria') {
+      const dataSecretaria = {
+        nombre: formData.get('nombre'),
+        email: formData.get('email'),
+        celular: formData.get('celular')
+      };
+
+      const responseSecretaria = await fetch('http://localhost:5000/api/secretaria/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Origin': 'http://localhost:4321'
+        },
+        body: JSON.stringify(dataSecretaria)
+      });
+
+      if (!responseSecretaria.ok) {
+        const errorData = await responseSecretaria.json();
+        throw new Error(errorData.message || 'Error al crear perfil de secretaria');
+      }
+    }
+
+    alert('Cuenta creada exitosamente');
+    window.location.href = '/login';
+  } catch (error) {
+    console.error('Error completo:', error);
+    alert(error.message || 'Error en el registro');
+  } finally {
+    toggleLoadingState(false);
+  }
+});
+
+// Función para validar email
+const validateEmail = (email) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+// Función para validar celular
+const validatePhone = (phone) => {
+  const phoneRegex = /^\d{6,14}$/;
+  return phoneRegex.test(phone);
+};
+
+// Función para validar nombre
+const validateName = (name) => {
+  const nameRegex = /^[a-zA-Z\s]+$/;
+  return nameRegex.test(name);
+};
+
+// Validación en tiempo real de los campos
+form.querySelectorAll('input').forEach(input => {
+  input.addEventListener('input', () => {
+    let errorMessage = '';
+    
+    switch(input.name) {
+      case 'email':
+        if (input.value && !validateEmail(input.value)) {
+          errorMessage = 'Email inválido';
+        }
+        break;
+      case 'celular':
+        if (input.value && !validatePhone(input.value)) {
+          errorMessage = 'Celular inválido (6-14 dígitos)';
+        }
+        break;
+      case 'nombre':
+        if (input.value && !validateName(input.value)) {
+          errorMessage = 'Solo se permiten letras y espacios';
+        }
+        break;
+    }
+    
+    // Mostrar/ocultar mensaje de error
+    const errorDiv = input.nextElementSibling?.classList.contains('error-message') 
+      ? input.nextElementSibling 
+      : document.createElement('div');
+    
+    if (!input.nextElementSibling?.classList.contains('error-message')) {
+      errorDiv.classList.add('error-message', 'text-sm', 'text-red-500', 'mt-1');
+      input.parentNode.insertBefore(errorDiv, input.nextSibling);
+    }
+    
+    errorDiv.textContent = errorMessage;
+    errorDiv.style.display = errorMessage ? 'block' : 'none';
+    
+    // Actualizar estado del botón
+    validateForm();
+  });
 });
 </script>
