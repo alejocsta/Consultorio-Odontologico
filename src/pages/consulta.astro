@@ -476,33 +476,44 @@ interface ConsultaData {
 </LayoutProtected>
 
 <script>
-  let consultaData = {
+const BASE_URL = 'http://localhost:5000/api';
+
+let consultaData = {
     id: new URLSearchParams(window.location.search).get('id'),
     paso1: {},
     paso2: {},
     paso3: {}
-  };
+};
 
-  async function marcarEnProceso() {
+async function cargarDatosCita() {
     try {
-      const response = await fetch('api/actualizar-estado', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          id: consultaData.id,
-          estado: 'en_proceso'
-        })
-      });
+        const citaId = consultaData.id;
+        if (!citaId) {
+            throw new Error('No se proporcionó ID de cita');
+        }
 
-      if (!response.ok) {
-        throw new Error('Error al actualizar estado');
-      }
+        const response = await fetch(`${BASE_URL}/citas/${citaId}`);
+        if (!response.ok) {
+            throw new Error('Error al cargar datos de la cita');
+        }
+
+        const cita = await response.json();
+        console.log('Datos de la cita cargados:', cita);
+        
+        // Pre-llenar el motivo de consulta en el paso 1
+        const motivoConsultaElement = document.getElementById('motivoConsulta');
+        if (motivoConsultaElement && cita.motivo) {
+            motivoConsultaElement.value = cita.motivo;
+        }
+
+        // Guardamos los datos de la cita en el consultaData
+        consultaData.citaInfo = cita;
+
     } catch (error) {
-      console.error('Error al actualizar estado:', error);
+        console.error('Error al cargar datos de la cita:', error);
+        alert('Error al cargar los datos de la consulta');
     }
-  }
+}
 
   function mostrarPaso(numero) {
     document.querySelectorAll('form').forEach(form => form.classList.add('hidden'));
@@ -548,46 +559,97 @@ interface ConsultaData {
 
 	async function guardarConsulta(e) {
     if (e) e.preventDefault();
+    recolectarDatosPaso(1);
+    recolectarDatosPaso(2);
     recolectarDatosPaso(3);
 
     try {
-      // Primero guardamos los datos de la consulta
-      const responseGuardar = await fetch('/api/guardar-consulta', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(consultaData)
-      });
+        // Asegurarnos de obtener el ID correcto del paciente
+				const pacienteId = consultaData.citaInfo.pacienteId.id || consultaData.citaInfo.pacienteId;
 
-      if (!responseGuardar.ok) {
-        throw new Error('Error al guardar la consulta');
-      }
+        const historiaClinicaData = {
+            datosPersonalesMedicos: {
+                enfermedades: consultaData.paso1.enfermedades || '',
+                tratamientoActual: consultaData.paso1.tratamientoMedico || '',
+                medicamentosRegulares: consultaData.paso1.medicamentos || '',
+                enfermedadInfectoInfecciosa: consultaData.paso1.enfermedadInfectoInfecciosa || '',
+                fuma: Boolean(consultaData.paso1.fuma),
+                embarazo: Boolean(consultaData.paso1.embarazada),
+                enfermedadConstancia: consultaData.paso1.otrasEnfermedades || '',
+                alergias: consultaData.paso1.alergias || '',
+                diabetes: Boolean(consultaData.paso1.diabetes),
+                enfermedadTransmisionSexual: consultaData.paso1.enfermedadTransmisionSexual || '',
+                motivoConsulta: consultaData.paso1.motivoConsulta || ''
+            },
+            antecedentesMedicosOdontologicos: {
+                consultoOdontologo: consultaData.paso2.consultaPrevia === 'si',
+                tratamientoOdontologico: {
+                    descripcion: consultaData.paso2.tratamientoOdontologico || '',
+                    desdeCuando: new Date().toISOString()
+                },
+                dolor: JSON.stringify({
+                    rango: consultaData.paso2.rangoDolor || '',
+                    tipo: consultaData.paso2.tipoDolor || '',
+                    caracteristicas: consultaData.paso2['caracteristicasDolor[]'] || [],
+                    sensibilidad: consultaData.paso2['sensibilidad[]'] || [],
+                    localizacion: consultaData.paso2.localizacionDolor || ''
+                }),
+                fracturaDiente: consultaData.paso2.fracturas || '',
+                dificultadMasticar: Boolean(consultaData.paso2.dificultadMasticar),
+                dificultadAbrirBoca: Boolean(consultaData.paso2.dificultadAbrirBoca)
+            },
+            estadoActual: {
+                anormalidadBoca: consultaData.paso3.anormalidadBucal || '',
+                sangradoEncias: Boolean(consultaData.paso3.sangradoEncias),
+                hinchazonCara: Boolean(consultaData.paso3.hinchazanCara),
+                higieneBucal: (consultaData.paso3.higieneBucal || 'bueno').toLowerCase()
+            },
+            aclaracionesFinalesMedico: consultaData.paso3.anotacionesMedico || '',
+            pacienteId: pacienteId // Usando el ID extraído correctamente
+        };
 
-      // Luego actualizamos el estado a "completada"
-      const responseEstado = await fetch('/api/actualizar-estado', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          id: consultaData.id,
-          estado: 'completada'
-        })
-      });
+        console.log('Datos a enviar:', historiaClinicaData);
 
-      if (!responseEstado.ok) {
-        throw new Error('Error al actualizar el estado');
-      }
+        const responseHistoriaClinica = await fetch(`${BASE_URL}/historiaClinica/create`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(historiaClinicaData)
+        });
 
-			window.location.href = '/';
-      alert('Consulta guardada exitosamente');
+        if (!responseHistoriaClinica.ok) {
+            const errorData = await responseHistoriaClinica.json();
+            throw new Error(errorData.message || 'Error al guardar la historia clínica');
+        }
+
+        // Actualizar estado de la cita
+        const responseEstado = await fetch(`${BASE_URL}/citas/${consultaData.id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                estado: 'completada',
+                fecha: consultaData.citaInfo.fecha,
+                motivo: consultaData.citaInfo.motivo,
+                medicoId: consultaData.citaInfo.medicoId._id || consultaData.citaInfo.medicoId,
+                pacienteId: pacienteId
+            })
+        });
+
+        if (!responseEstado.ok) {
+            throw new Error('Error al actualizar el estado de la cita');
+        }
+
+        alert('Consulta guardada exitosamente');
+        window.location.href = '/';
 
     } catch (error) {
-      console.error('Error:', error);
-      alert('Error al guardar la consulta');
+        console.error('Error detallado:', error);
+        alert('Error al guardar la consulta: ' + error.message);
     }
-  }
+}
 
   // Event Listeners
   document.getElementById('volverBtn')?.addEventListener('click', (e) => {
@@ -621,6 +683,10 @@ interface ConsultaData {
   document.getElementById('anterior3')?.addEventListener('click', () => mostrarPaso(2));
 
   document.getElementById('guardar')?.addEventListener('click', (e) => guardarConsulta(e));
+
+	document.addEventListener('DOMContentLoaded', () => {
+    cargarDatosCita();
+});
 
   // Inicializar mostrando el primer paso
   mostrarPaso(1);

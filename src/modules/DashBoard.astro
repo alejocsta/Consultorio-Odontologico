@@ -1,23 +1,18 @@
 ---
-/* eslint max-lines: 'off' */
 import 'flowbite';
 import 'datatables.net';
 ---
 
 <div class="px-4 pt-6">
-	<!-- Panel superior de Mi Perfil -->
-	<div
-		class="w-full bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700"
-	>
-		<!-- Dropdown en la esquina superior derecha -->
+	<div class="w-full bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
 		<div class="flex justify-end px-4 pt-4">
 			<button
 				id="dropdownButton"
-				data-dropdown-toggle="dropdown"
+				data-dropdown-toggle="userDropdown"
 				class="inline-block text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:ring-4 focus:outline-none focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-1.5"
 				type="button"
 			>
-				<span class="sr-only">Open dropdown</span>
+				<span class="sr-only">Img</span>
 				<svg
 					class="w-5 h-5"
 					aria-hidden="true"
@@ -25,188 +20,436 @@ import 'datatables.net';
 					fill="currentColor"
 					viewBox="0 0 16 3"
 				>
-					<path
-						d="M2 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm6.041 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM14 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Z"
-					></path>
+					<path d="M2 0a1.5 1.5 1 1 1 0 3 1.5 1.5 0 0 1 0-3Zm6.041 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM14 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Z"></path>
 				</svg>
 			</button>
+			<!-- Dropdown menu -->
+			<div id="userDropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600">
+				<div class="px-4 py-3 text-sm text-gray-900 dark:text-white">
+					<div id="dropdownUserName">Cargando...</div>
+					<div id="dropdownUserEmail" class="font-medium truncate">Cargando...</div>
+				</div>
+				<ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownButton">
+					<li>
+						<a href="#" id="logoutButton" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Cerrar sesión</a>
+					</li>
+				</ul>
+			</div>
 		</div>
 
-		<!-- Contenedor principal: Imagen e Información -->
 		<div class="flex flex-col md:flex-row justify-between items-center px-6 py-4">
-			<!-- Imagen del Usuario -->
 			<div class="w-full md:w-auto md:pr-8 pb-4 md:pb-0">
 				<img
 					class="w-48 h-48 rounded-full shadow-lg mx-auto"
 					src="/src/assets/flowbite-logo.svg"
-					alt="Bonnie image"
+					alt="Profile image"
 				/>
 			</div>
 
-			<!-- Información del Usuario -->
 			<div class="w-full md:flex-1 md:ml-6">
-				<h5 class="mb-2 text-xl font-medium text-gray-900 dark:text-white text-center md:text-left">
-					Alejo Costa  
+				<h5 id="userName" class="mb-2 text-xl font-medium text-gray-900 dark:text-white text-center md:text-left">
+					Cargando...
 				</h5>
-				<div 
-					class="w-full bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 p-4 md:p-6"
-				>
-					<!-- Contenedor de datos en grid -->
+				<div class="w-full bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 p-4 md:p-6">
 					<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-						<!-- Primera fila -->
 						<div>
 							<h5 class="text-sm font-medium text-gray-500 dark:text-gray-400">
-								DNI
+								Email
 							</h5>
-							<p class="text-lg font-medium text-gray-900 dark:text-white">
-								12345678
-							</p>  
+							<p id="userEmail" class="text-lg font-medium text-gray-900 dark:text-white">
+								Cargando...
+							</p>
 						</div>
 						<div>
 							<h5 class="text-sm font-medium text-gray-500 dark:text-gray-400">
 								Teléfono
 							</h5>
-							<p class="text-lg font-medium text-gray-900 dark:text-white">
-								+54 9 11 1234-5678
+							<p id="userPhone" class="text-lg font-medium text-gray-900 dark:text-white">
+								Cargando...
 							</p>
 						</div>
-						<div>
+						<div id="especialidadContainer" class="hidden">
 							<h5 class="text-sm font-medium text-gray-500 dark:text-gray-400">
 								Especialidad
-							</h5>  
-							<p class="text-lg font-medium text-gray-900 dark:text-white">
-								Odontología
+							</h5>
+							<p id="userEspecialidad" class="text-lg font-medium text-gray-900 dark:text-white">
+								Cargando...
 							</p>
 						</div>
-
-						<!-- Segunda fila -->  
-						<div>
+						<div id="matriculaContainer" class="hidden">
 							<h5 class="text-sm font-medium text-gray-500 dark:text-gray-400">
-								Género  
+								Nº Matrícula
 							</h5>
-							<p class="text-lg font-medium text-gray-900 dark:text-white">
-								Masculino 
-							</p>
-						</div>
-						<div>  
-							<h5 class="text-sm font-medium text-gray-500 dark:text-gray-400">
-								Nro Pacientes
-							</h5>
-							<p class="text-lg font-medium text-gray-900 dark:text-white">
-								25
-							</p>  
-						</div>
-						<div>
-							<h5 class="text-sm font-medium text-gray-500 dark:text-gray-400">
-								Nro Tratamientos 
-							</h5>
-							<p class="text-lg font-medium text-gray-900 dark:text-white">
-								12
+							<p id="userMatricula" class="text-lg font-medium text-gray-900 dark:text-white">
+								Cargando...
 							</p>
 						</div>
 					</div>
-				</div>  
+				</div>
 			</div>
 		</div>
 
-		<!-- Botones -->
-		<div 
-			class="flex flex-col sm:flex-row items-center justify-center rounded-md shadow-sm p-4 w-full"
-			role="group"  
-		>
-			<button
-				type="button"
-				class="w-full sm:w-auto inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-transparent border border-gray-900 rounded-s-lg hover:bg-gray-900 hover:text-white focus:z-10 focus:ring-2 focus:ring-gray-500 focus:bg-gray-900 focus:text-white dark:border-white dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:bg-gray-700"
-			>
-				<svg
-					class="w-3 h-3 me-2"  
-					aria-hidden="true"
-					xmlns="http://www.w3.org/2000/svg"  
-					fill="currentColor"
-					viewBox="0 0 20 20"
+		<div id="tableContainer" class="mt-8">
+			<div class="flex justify-center mb-4 space-x-4">
+				<button
+					id="citasButton"
+					class="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500"
 				>
-					<path  
-						d="M10 0a10 10 0 1 0 10 10A10.011 10.011 0 0 0 10 0Zm0 5a3 3 0 1 1 0 6 3 3 0 0 1 0-6Zm0 13a8.949 8.949 0 0 1-4.951-1.488A3.987 3.987 0 0 1 9 13h2a3.987 3.987 0 0 1 3.951 3.512A8.949 8.949 0 0 1 10 18Z"
-					></path>
-				</svg>
-				Tratamientos  
-			</button>
-			<button
-				type="button"
-				class="w-full sm:w-auto mt-2 sm:mt-0 sm:ms-2 inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-transparent border-t border-b border-gray-900 hover:bg-gray-900 hover:text-white focus:z-10 focus:ring-2 focus:ring-gray-500 focus:bg-gray-900 focus:text-white dark:border-white dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:bg-gray-700"
-			>
-				<svg
-					class="w-3 h-3 me-2"
-					aria-hidden="true"  
-					xmlns="http://www.w3.org/2000/svg"
-					fill="none"
-					viewBox="0 0 20 20"
+					Ver Citas
+				</button>
+				<button
+					id="pacientesButton"
+					class="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500"
 				>
-					<path
-						stroke="currentColor"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M4 12.25V1m0 11.25a2.25 2.25 0 0 0 0 4.5m0-4.5a2.25 2.25 0 0 1 0 4.5M4 19v-2.25m6-13.5V1m0 2.25a2.25 2.25 0 0 0 0 4.5m0-4.5a2.25 2.25 0 0 1 0 4.5M10 19V7.75m6 4.5V1m0 11.25a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5ZM16 19v-2"
-					></path>  
-				</svg>
-				Citas
-			</button>
-			<button  
-				type="button"
-				class="w-full sm:w-auto mt-2 sm:mt-0 sm:ms-2 inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-transparent border border-gray-900 rounded-e-lg hover:bg-gray-900 hover:text-white focus:z-10 focus:ring-2 focus:ring-gray-500 focus:bg-gray-900 focus:text-white dark:border-white dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:bg-gray-700"  
-			>
-				<svg
-					class="w-3 h-3 me-2"
-					aria-hidden="true"
-					xmlns="http://www.w3.org/2000/svg"
-					fill="currentColor"  
-					viewBox="0 0 20 20"
-				>
-					<path
-						d="M14.707 7.793a1 1 0 0 0-1.414 0L11 10.086V1.5a1 1 0 0 0-2 0v8.586L6.707 7.793a1 1 0 1 0-1.414 1.414l4 4a1 1 0 0 0 1.416 0l4-4a1 1 0 0 0-.002-1.414Z"  
-					></path>
-					<path
-						d="M18 12h-2.55l-2.975 2.975a3.5 3.5 0 0 1-4.95 0L4.55 12H2a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2Zm-3 5a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"  
-					></path>
-				</svg>
-				Pacientes
-			</button>  
-		</div>
-
-		<!-- Tablas -->
-		<div class="relative overflow-x-auto shadow-md sm:rounded-lg p-4 md:p-6">
-			<div class="flex flex-col sm:flex-row flex-wrap space-y-4 sm:space-y-0 items-center justify-between pb-4">  
-			<!-- Acá irían las tablas según el botón -->
-			</div>  
+					Ver Pacientes
+				</button>
+			</div>
+	
+			<!-- Tabla de Citas -->
+			<div id="citasTable" class="hidden w-full bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
+				<div class="p-4">
+					<h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Citas Programadas</h2>
+					<div class="overflow-x-auto">
+						<table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+							<thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+								<tr>
+									<th class="px-6 py-3">Fecha</th>
+									<th class="px-6 py-3">Paciente</th>
+									<th class="px-6 py-3">Motivo</th>
+									<th class="px-6 py-3">Estado</th>
+									<th class="px-6 py-3">Monto</th>
+								</tr>
+							</thead>
+							<tbody id="citasTableBody">
+								<!-- Las filas se llenarán dinámicamente -->
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+	
+			<!-- Tabla de Pacientes -->
+			<div id="pacientesTable" class="hidden w-full bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
+				<div class="p-4">
+					<h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Lista de Pacientes</h2>
+					<div class="overflow-x-auto">
+						<table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+							<thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+								<tr>
+									<th class="px-6 py-3">Nombre</th>
+									<th class="px-6 py-3">DNI</th>
+									<th class="px-6 py-3">Teléfono</th>
+									<th class="px-6 py-3">Email</th>
+								</tr>
+							</thead>
+							<tbody id="pacientesTableBody">
+								<!-- Las filas se llenarán dinámicamente -->
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
-
-	<style is:global>
-		/* chart styles */
-		.apexcharts-tooltip {
-			@apply bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-0 rounded-lg shadow-lg !important;
-		}
-
-		.apexcharts-tooltip .apexcharts-tooltip-title {
-			@apply py-2 px-4 bg-gray-100 dark:bg-gray-600 border-b border-gray-200 dark:border-gray-500 !important;
-		}
-
-		.apexcharts-xaxistooltip {
-			@apply text-gray-500 border-0 bg-white dark:bg-gray-700 dark:text-gray-300 rounded-lg shadow-lg !important;
-		}
-
-		.apexcharts-tooltip .apexcharts-tooltip-text-y-value {
-			@apply dark:text-white;
-		}
-
-		.apexcharts-xaxistooltip-text {
-			@apply font-medium text-sm !important;
-		}
-
-		.apexcharts-xaxistooltip:before,
-		.apexcharts-xaxistooltip:after {
-			@apply border-0 !important;
-		}
-	</style>
+	</div>
 </div>
+
+<script is:inline>
+  window.addEventListener('load', async () => {
+    try {
+      const userId = localStorage.getItem('userId');
+      const userRole = localStorage.getItem('userRole');
+
+      console.log('Initial load - userId:', userId);
+      console.log('Initial load - userRole:', userRole);
+
+      if (!userId || !userRole) {
+        console.error('No user data found in localStorage');
+        window.location.href = '/login';
+        return;
+      }
+
+      let endpoint = '';
+      if (userRole === 'odontologo') {
+        endpoint = `http://localhost:5000/api/medico/findByUser/${userId}`;
+      } else if (userRole === 'secretaria') {
+        endpoint = `http://localhost:5000/api/secretaria/findByUser/${userId}`;
+      } else {
+        throw new Error('Rol de usuario no válido');
+      }
+
+      console.log('Fetching from endpoint:', endpoint);
+
+      const response = await fetch(endpoint);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      // Extraer los datos del médico del objeto anidado
+      const userData = data.medico;
+      console.log('User data extracted:', userData);
+
+      // Función para actualizar elemento si existe
+      const updateElement = (id, value, defaultValue = 'No disponible') => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.textContent = value || defaultValue;
+          console.log(`Updated ${id} with value:`, value || defaultValue);
+        } else {
+          console.warn(`Element with id ${id} not found`);
+        }
+      };
+
+      // Actualizar todos los elementos
+      updateElement('dropdownUserName', userData.nombre);
+      updateElement('dropdownUserEmail', userData.email);
+      updateElement('userName', userData.nombre);
+      updateElement('userEmail', userData.email);
+      updateElement('userPhone', userData.celular);
+
+      if (userRole === 'odontologo') {
+        ['especialidadContainer', 'matriculaContainer', 'medicButtons'].forEach(id => {
+          const element = document.getElementById(id);
+          if (element) {
+            element.classList.remove('hidden');
+            console.log(`Showed container: ${id}`);
+          }
+        });
+
+        updateElement('userEspecialidad', userData.especialidad);
+        updateElement('userMatricula', userData.nMatricula);
+
+				setupTables();
+
+				if (userData._id) {
+            localStorage.setItem('medicoId', userData._id);
+        }
+      }
+
+      // Configurar botón de logout
+      const logoutButton = document.getElementById('logoutButton');
+      if (logoutButton) {
+        logoutButton.addEventListener('click', (e) => {
+          e.preventDefault();
+          localStorage.removeItem('userId');
+          localStorage.removeItem('userRole');
+          window.location.href = '/login';
+        });
+      }
+
+      console.log('Profile update completed successfully');
+
+    } catch (error) {
+      console.error('Error loading user data:', error);
+      updateElement('userName', 'Error al cargar datos');
+    }
+  });
+
+  // Script de diagnóstico
+  setTimeout(() => {
+    console.log('=== Diagnóstico de elementos DOM ===');
+    ['userName', 'userEmail', 'userPhone', 'userEspecialidad', 'userMatricula'].forEach(id => {
+      const element = document.getElementById(id);
+      console.log(`${id}:`, element ? 'Existe' : 'No existe');
+      if (element) {
+        console.log(`${id} contenido:`, element.textContent);
+      }
+    });
+  }, 2000);
+
+	function setupTables() {
+    const citasButton = document.getElementById('citasButton');
+    const pacientesButton = document.getElementById('pacientesButton');
+    const citasTable = document.getElementById('citasTable');
+    const pacientesTable = document.getElementById('pacientesTable');
+
+    citasButton.addEventListener('click', async () => {
+      pacientesTable.classList.add('hidden');
+      citasTable.classList.toggle('hidden');
+      if (!citasTable.classList.contains('hidden')) {
+        await cargarCitas();
+      }
+    });
+
+    pacientesButton.addEventListener('click', async () => {
+      citasTable.classList.add('hidden');
+      pacientesTable.classList.toggle('hidden');
+      if (!pacientesTable.classList.contains('hidden')) {
+        await cargarPacientes();
+      }
+    });
+  }
+
+	async function cargarCitas() {
+    try {
+        const medicoId = localStorage.getItem('medicoId');
+        console.log('Cargando citas para médico ID:', medicoId);
+
+        const response = await fetch('http://localhost:5000/api/cita/todas');
+        const data = await response.json();
+        
+        // Verificar la estructura de la respuesta
+        console.log('Respuesta del servidor:', data);
+        
+        // Asegurarnos de que estamos trabajando con un array
+        const citas = Array.isArray(data) ? data : data.citas || [];
+        
+        const citasTableBody = document.getElementById('citasTableBody');
+        citasTableBody.innerHTML = '';
+
+        // Filtrar por medicoId
+        const citasFiltradas = citas.filter(cita => {
+            console.log('Comparando cita.medicoId:', cita.medicoId, 'con medicoId:', medicoId);
+            return cita.medicoId === medicoId;
+        });
+        
+        console.log('Citas filtradas:', citasFiltradas);
+
+        if (citasFiltradas.length === 0) {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td colspan="5" class="px-6 py-4 text-center">
+                    No hay citas programadas
+                </td>
+            `;
+            citasTableBody.appendChild(row);
+            return;
+        }
+
+        citasFiltradas.forEach(cita => {
+            const row = document.createElement('tr');
+            row.className = 'bg-white border-b dark:bg-gray-800 dark:border-gray-700';
+            
+            const fecha = new Date(cita.fecha).toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            const estadoClasses = {
+                'pendiente': 'bg-yellow-100 text-yellow-800',
+                'completada': 'bg-green-100 text-green-800',
+                'cancelada': 'bg-red-100 text-red-800'
+            };
+
+            row.innerHTML = `
+                <td class="px-6 py-4">${fecha}</td>
+                <td class="px-6 py-4">${cita.pacienteId?.nombre || 'No disponible'}</td>
+                <td class="px-6 py-4">${cita.motivo}</td>
+                <td class="px-6 py-4">
+                    <span class="px-2 py-1 rounded-full text-xs ${estadoClasses[cita.estado] || ''}">${cita.estado}</span>
+                </td>
+                <td class="px-6 py-4">$${cita.monto || 0}</td>
+            `;
+
+            citasTableBody.appendChild(row);
+        });
+    } catch (error) {
+        console.error('Error al cargar citas:', error);
+        const citasTableBody = document.getElementById('citasTableBody');
+        citasTableBody.innerHTML = `
+            <tr>
+                <td colspan="5" class="px-6 py-4 text-center text-red-500">
+                    Error al cargar las citas
+                </td>
+            </tr>
+        `;
+    }
+}
+
+async function cargarPacientes() {
+    try {
+        const medicoId = localStorage.getItem('medicoId');
+        console.log('Cargando pacientes para médico ID:', medicoId);
+
+        // Primero obtenemos todas las citas del médico
+        const citasResponse = await fetch('http://localhost:5000/api/citas/todas');
+        const citasData = await citasResponse.json();
+        const citas = Array.isArray(citasData) ? citasData : citasData.citas || [];
+
+        // Filtramos las citas del médico
+        const citasDelMedico = citas.filter(cita => cita.medicoId === medicoId);
+
+        // Obtenemos los IDs únicos de pacientes
+        const pacientesIds = [...new Set(citasDelMedico.map(cita => cita.pacienteId))];
+        console.log('IDs de pacientes únicos:', pacientesIds);
+
+        const pacientesTableBody = document.getElementById('pacientesTableBody');
+        pacientesTableBody.innerHTML = '';
+
+        if (pacientesIds.length === 0) {
+            pacientesTableBody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="px-6 py-4 text-center">
+                        No hay pacientes atendidos
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        // Por cada paciente en las citas, buscamos sus datos
+        for (const pacienteId of pacientesIds) {
+            try {
+                const pacienteResponse = await fetch(`http://localhost:5000/api/paciente/${pacienteId}`);
+                const paciente = await pacienteResponse.json();
+                
+                const row = document.createElement('tr');
+                row.className = 'bg-white border-b dark:bg-gray-800 dark:border-gray-700';
+                
+                row.innerHTML = `
+                    <td class="px-6 py-4">${paciente.nombre || 'No disponible'}</td>
+                    <td class="px-6 py-4">${paciente.dni || 'No disponible'}</td>
+                    <td class="px-6 py-4">${paciente.areaCode || ''} ${paciente.telefono || 'No disponible'}</td>
+                    <td class="px-6 py-4">${paciente.mail || 'No disponible'}</td>
+                `;
+
+                pacientesTableBody.appendChild(row);
+            } catch (error) {
+                console.error('Error al cargar datos del paciente:', error);
+            }
+        }
+    } catch (error) {
+        console.error('Error al cargar pacientes:', error);
+        const pacientesTableBody = document.getElementById('pacientesTableBody');
+        pacientesTableBody.innerHTML = `
+            <tr>
+                <td colspan="4" class="px-6 py-4 text-center text-red-500">
+                    Error al cargar los pacientes
+                </td>
+            </tr>
+        `;
+    }
+}
+</script>
+
+<style is:global>
+	/* chart styles */
+	.apexcharts-tooltip {
+		@apply bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-0 rounded-lg shadow-lg !important;
+	}
+
+	.apexcharts-tooltip .apexcharts-tooltip-title {
+		@apply py-2 px-4 bg-gray-100 dark:bg-gray-600 border-b border-gray-200 dark:border-gray-500 !important;
+	}
+
+	.apexcharts-xaxistooltip {
+		@apply text-gray-500 border-0 bg-white dark:bg-gray-700 dark:text-gray-300 rounded-lg shadow-lg !important;
+	}
+
+	.apexcharts-tooltip .apexcharts-tooltip-text-y-value {
+		@apply dark:text-white;
+	}
+
+	.apexcharts-xaxistooltip-text {
+		@apply font-medium text-sm !important;
+	}
+
+	.apexcharts-xaxistooltip:before,
+	.apexcharts-xaxistooltip:after {
+		@apply border-0 !important;
+	}
+</style>

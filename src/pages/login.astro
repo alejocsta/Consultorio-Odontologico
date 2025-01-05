@@ -1,6 +1,6 @@
 ---
 import LayoutCommon from "../app/LayoutCommon.astro";
-import { setUserRole } from '../auth/middleware'; 
+import { setUserRole, setUserId } from '../auth/middleware';
 ---
 
 <LayoutCommon>
@@ -48,12 +48,13 @@ import { setUserRole } from '../auth/middleware';
 </LayoutCommon>
 
 <script>
- import { setUserRole } from '../auth/middleware';
+  import { setUserRole, setUserId } from '../auth/middleware';
 
   interface LoginResponse {
     success: boolean;
     message: string;
     rol?: string;
+    userId?: string;
   }
 
   const loginForm = document.getElementById('loginForm') as HTMLFormElement;
@@ -66,79 +67,62 @@ import { setUserRole } from '../auth/middleware';
   const passwordError = document.getElementById('passwordError');
   const errorMessage = document.getElementById('errorMessage');
 
-	loginForm.addEventListener('submit', async (event) => {
-  event.preventDefault();
-
-  submitBtn.disabled = true;
-  loadingSpinner.classList.remove('hidden');
-  errorMessage.classList.add('hidden');
-
-  const response = await validateUser(emailInput.value, passwordInput.value);
-
-  if (response.success && response.rol) {
-    console.log('Setting user role:', response.rol); // Debug
-    setUserRole(response.rol);
-    // Pequeño delay para asegurar que el localStorage se actualice
-    setTimeout(() => {
-      window.location.href = '/';
-    }, 100);
-  } else {
-    errorMessage.textContent = response.message;
-    errorMessage.classList.remove('hidden');
-  }
-
-  submitBtn.disabled = false;
-  loadingSpinner.classList.add('hidden');
-});
-
-  const validateUser = async (email: string, password: string): Promise<LoginResponse> => {
-    try {
-      const response = await fetch('http://localhost:5000/api/login/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-  
-      if (!response.ok) {
-        throw new Error('Error al iniciar sesión. Verifica tus credenciales.');
-      }
-  
-      const data = await response.json();
-  
-      return {
-        success: data.message === 'Login exitoso',
-        message: data.message || 'Credenciales inválidas',
-        rol: data.rol,
-      };
-    } catch (error) {
-      console.error('Error en validateUser:', error);
-      return {
-        success: false,
-        message: error instanceof Error ? error.message : 'Error en la autenticación',
-      };
-    }
-  };
-
   loginForm.addEventListener('submit', async (event) => {
     event.preventDefault();
 
     submitBtn.disabled = true;
     loadingSpinner.classList.remove('hidden');
     errorMessage.classList.add('hidden');
-  
+
     const response = await validateUser(emailInput.value, passwordInput.value);
-  
-    if (response.success && response.rol) {
-      localStorage.setItem('role', response.rol);
-      window.location.href = '/';
+
+    if (response.success && response.rol && response.userId) {
+      console.log('Setting user role:', response.rol); // Debug
+      console.log('Setting user ID:', response.userId); // Debug
+      setUserRole(response.rol);
+      setUserId(response.userId);
+
+      // Pequeño delay para asegurar que el localStorage se actualice
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 100);
     } else {
       errorMessage.textContent = response.message;
       errorMessage.classList.remove('hidden');
     }
-  
+
     submitBtn.disabled = false;
     loadingSpinner.classList.add('hidden');
   });
+
+  const validateUser = async (email: string, password: string): Promise<LoginResponse> => {
+  try {
+    const response = await fetch('http://localhost:5000/api/login/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Error al iniciar sesión. Verifica tus credenciales.');
+    }
+
+    const data = await response.json();
+
+    return {
+      success: data.message === 'Login exitoso',
+      message: data.message || 'Credenciales inválidas',
+      rol: data.rol,
+      userId: data.userId,
+    };
+  } catch (error) {
+    console.error('Error en validateUser:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Error en la autenticación',
+    };
+  }
+};
 </script>

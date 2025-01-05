@@ -99,7 +99,8 @@ import SearchInput from '../components/SearchInput.astro';
 								<a
 									href="#"
 									class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white"
-									role="menuitem">Sign out</a
+									id="logoutButton"
+									role="menuitem">Cerrar Sesión</a
 								>
 							</li>
 						</ul>
@@ -109,3 +110,16 @@ import SearchInput from '../components/SearchInput.astro';
 		</div>
 	</div>
 </nav>
+
+
+<script>
+const logoutButton = document.getElementById('logoutButton');
+      if (logoutButton) {
+        logoutButton.addEventListener('click', (e) => {
+          e.preventDefault();
+          localStorage.removeItem('userId');
+          localStorage.removeItem('userRole');
+          window.location.href = '/login';
+        });
+      }
+</script>

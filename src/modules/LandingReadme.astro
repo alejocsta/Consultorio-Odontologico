@@ -1,5 +1,4 @@
 ---
-import consultasData from '../data/citas.json';
 ---
 
 <div class="bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-800 text-slate-800 dark:text-slate-100 mb-20 p-4 lg:p-16 shadow-xl shadow-slate-200 dark:shadow-slate-900 min-h-screen flex items-center justify-center">
@@ -13,21 +12,15 @@ import consultasData from '../data/citas.json';
   </header>
 </div>
 
-<script define:vars={{ consultasData }}>
+<script>
   const container = document.getElementById("cards-container");
+	 const BASE_URL = 'http://localhost:5000/api'
 
-  function formatTime(timeString) {
-    const [hours, minutes] = timeString.split(':');
+  function formatTime(dateString) {
+    const date = new Date(dateString);
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
     return `${hours}:${minutes}`;
-  }
-
-  function getCurrentDateString() {
-    const today = new Date();
-    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-  }
-
-  function isToday(dateString) {
-    return dateString === getCurrentDateString();
   }
 
   function getEstadoColor(estado) {
@@ -48,46 +41,67 @@ import consultasData from '../data/citas.json';
     return textos[estado] || 'Activa';
   }
 
-  function getWhatsAppLink(telefono, nombrePaciente, nombreMedico, hora) {
+	function getWhatsAppLink(paciente, medico, hora) {
+    console.log('Datos del paciente:', paciente);
+    console.log('Datos del médico:', medico);
+    
+    // Asegurarse de que el número de teléfono tenga el formato correcto
+    const telefono = paciente?.telefono?.replace(/\D/g, ''); // Eliminar caracteres no numéricos
+    const codigoPais = paciente?.areaCode || '+54'; // Usar código de área o default a +54
+    const telefonoCompleto = `${codigoPais}${telefono}`.replace('+', '');
+    
     const mensaje = encodeURIComponent(
-      `Hola, Te habla ${nombreMedico} del consultorio odontológico, queríamos avisarte que hoy a las ${hora} tienes una cita en nuestro consultorio. Muchas Gracias.`
+        `Hola ${paciente.nombre}, Te habla ${medico.nombre} del consultorio odontológico, queríamos avisarte que hoy a las ${hora} tienes una cita en nuestro consultorio. Muchas Gracias.`
     );
-    return `https://wa.me/${telefono}?text=${mensaje}`;
-  }
+    
+    // Retornar la URL de WhatsApp
+    return `https://wa.me/${telefonoCompleto}?text=${mensaje}`;
+}
+    
+    
 
-  window.handleAtenderClick = async function (consultaId) {
+	window.handleAtenderClick = async function(citaId) {
     try {
-      const response = await fetch('/api/actualizar-estado', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          id: consultaId,
-          estado: 'en_proceso',
-        }),
-      });
+        // Primero actualizamos el estado de la cita a 'en_proceso'
+        const response = await fetch(`${BASE_URL}/citas/${citaId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                estado: 'en_proceso',
+                // Incluimos todos los campos requeridos según tu schema
+                fecha: new Date(), // Mantenemos la fecha actual
+                motivo: document.getElementById(`motivo-${citaId}`)?.textContent || '',
+                monto: document.getElementById(`monto-${citaId}`)?.textContent?.replace('$', '') || 0
+            })
+        });
 
-      if (response.ok) {
-        const result = await response.json();
-        console.log(result.message || 'Estado actualizado con éxito');
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Error al actualizar el estado de la cita');
+        }
 
-        window.location.href = `/consulta?id=${consultaId}`;
-      } else {
-        const errorResult = await response.json();
-        console.error(errorResult.error || 'Error al actualizar el estado');
-        alert('No se pudo actualizar el estado de la consulta. Inténtalo de nuevo.');
-      }
+        // Si la actualización fue exitosa, redirigimos a la página de consulta
+        window.location.href = `/consulta?id=${citaId}`;
+        
     } catch (error) {
-      console.error('Error al atender la consulta:', error);
-      alert('Ocurrió un error al procesar la solicitud.');
+        console.error('Error:', error);
+        alert('Ocurrió un error al procesar la cita: ' + error.message);
     }
-  };
+}
 
-  function loadData() {
+  async function loadData() {
     try {
-      const consultasHoy = consultasData.filter(consulta => isToday(consulta.diaConsulta));
-      consultasHoy.sort((a, b) => a.horaConsulta.localeCompare(b.horaConsulta));
+      const response = await fetch(`${BASE_URL}/citas/hoy`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      const consultasHoy = data.data;
+
       container.innerHTML = '';
 
       consultasHoy.forEach((consulta) => {
@@ -99,28 +113,30 @@ import consultasData from '../data/citas.json';
 
         const botonAtenderHtml = mostrarBotonAtender ? `
           <button 
-            onclick="handleAtenderClick('${consulta.id}')"
+            onclick="handleAtenderClick('${consulta._id}')"
             class="w-full px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
             ${consulta.estado === 'en_proceso' ? 'Continuar' : 'Atender'}
           </button>
         ` : '';
 
-        const botonRecordatorioHtml = mostrarBotonRecordatorio ? `
-          <button 
-            onclick="window.open('${getWhatsAppLink(consulta.telefonoPaciente, consulta.nombrePaciente, consulta.nombreMedico, formatTime(consulta.horaConsulta))}', '_blank')"
-            class="px-4 py-2 text-white bg-green-500 hover:bg-green-600 rounded-lg transition-colors"
-          >
-            Enviar Recordatorio
-          </button>
-        ` : '';
+				const botonRecordatorioHtml = mostrarBotonRecordatorio ? `
+    <button 
+        onclick="window.open('${getWhatsAppLink(
+            consulta.pacienteId, 
+            consulta.medicoId, 
+            formatTime(consulta.fecha)
+        )}', '_blank')"
+        class="px-4 py-2 text-white bg-green-500 hover:bg-green-600 rounded-lg transition-colors"
+    >
+        Enviar Recordatorio
+    </button>
+` : '';
 
         let tratamientosHtml = '';
         if (Array.isArray(consulta.tratamientos)) {
-          tratamientosHtml = consulta.tratamientos.map(tratamiento => `
-            <p><strong>Tratamiento:</strong> ${tratamiento}</p>
+          tratamientosHtml = consulta.tratamientos.map((tratamiento) => `
+            <p><strong>Tratamiento:</strong> ${tratamiento.nombre}</p>
           `).join('');
-        } else if (typeof consulta.tratamientos === 'string') {
-          tratamientosHtml = `<p><strong>Tratamiento:</strong> ${consulta.tratamientos}</p>`;
         }
 
         const tratamientosContainer = document.createElement("div");
@@ -140,22 +156,22 @@ import consultasData from '../data/citas.json';
           }
         });
 
-        card.innerHTML = `
-          <div class="space-y-4">
-            <div class="flex justify-between items-center">
-              <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">
-                ${consulta.nombrePaciente}
-              </h3>
-              <span class="text-sm text-gray-500 dark:text-gray-400">
-                ${formatTime(consulta.horaConsulta)}
-              </span>
-            </div>
-            <div class="text-gray-600 dark:text-gray-300">
-              <p><strong>Médico:</strong> ${consulta.nombreMedico}</p>
-              <p><strong>Problema:</strong> ${consulta.problema}</p>
-            </div>
-          </div>
-        `;
+				card.innerHTML = `
+  <div class="space-y-4">
+    <div class="flex justify-between items-center gap-2">
+      <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 truncate">
+        ${consulta.pacienteId.nombre}
+      </h3>
+      <span class="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+        ${formatTime(consulta.fecha)}
+      </span>
+    </div>
+    <div class="text-gray-600 dark:text-gray-300">
+      <p><strong>Médico:</strong> ${consulta.medicoId.nombre}</p>
+      <p><strong>Motivo:</strong> ${consulta.motivo}</p>
+    </div>
+  </div>
+`;
 
         const infoContainer = card.querySelector('.text-gray-600');
         infoContainer.appendChild(toggleTratamientosButton);
@@ -212,4 +228,18 @@ import consultasData from '../data/citas.json';
     height: 100%;
     width: 100%;
   }
+
+	.card .flex {
+  gap: 0.5rem; /* Espaciado entre el nombre y la hora */
+}
+
+.card h3 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap; /* Trunca texto largo */
+}
+
+.card span {
+  white-space: nowrap; /* Evita que la hora salte de línea */
+}
 </style>
