@@ -85,27 +85,50 @@ const validateUser = async (email: string, password: string): Promise<LoginRespo
     const loginData = await loginResponse.json();
     console.log('Respuesta del login:', loginData);
 
-    // 2. Si el login es exitoso, buscamos el médico por email
+    // 2. Si el login es exitoso, buscamos el usuario según su rol
     if (loginData.success) {
-      const medicoResponse = await fetch(`http://localhost:5000/api/medico/findByEmail/${email}`);
-      const medicoData = await medicoResponse.json();
-      console.log('Datos del médico:', medicoData);
-
-      if (medicoData.medico) {
-        // Usar el ID correcto del médico
-        return {
-          success: true,
-          message: loginData.message,
-          rol: loginData.rol,
-          userId: medicoData.medico._id // Usar el ID real del médico
-        };
+      let userResponse;
+      
+      if (loginData.rol === 'odontologo') {
+        userResponse = await fetch(`http://localhost:5000/api/medico/findByEmail/${email}`);
+        const medicoData = await userResponse.json();
+        
+        if (medicoData.medico) {
+          return {
+            success: true,
+            message: loginData.message,
+            rol: loginData.rol,
+            userId: medicoData.medico._id
+          };
+        }
+      } 
+      else if (loginData.rol === 'secretaria') {
+        userResponse = await fetch(`http://localhost:5000/api/secretaria/buscar/email/${email}`);
+        const secretariaData = await userResponse.json();
+        
+        if (secretariaData.secretaria) {
+          return {
+            success: true,
+            message: loginData.message,
+            rol: loginData.rol,
+            userId: secretariaData.secretaria._id
+          };
+        }
       }
+
+      // Si no se encontró el usuario según su rol
+      return {
+        success: false,
+        message: `No se encontró el perfil de ${loginData.rol}`,
+        userId: '',
+        rol: ''
+      };
     }
 
     return {
       success: false,
-      message: 'No se pudo verificar la identidad del médico',
-      userId: '', // Valor vacío si no se encuentra el médico
+      message: 'No se pudo verificar la identidad del usuario',
+      userId: '',
       rol: ''
     };
 
