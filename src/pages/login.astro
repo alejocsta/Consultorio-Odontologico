@@ -48,25 +48,80 @@ import { setUserRole, setUserId } from '../auth/middleware';
 </LayoutCommon>
 
 <script>
-  import { setUserRole, setUserId } from '../auth/middleware';
+//imports
+import { setUserRole, setUserId } from '../auth/middleware'
 
-  interface LoginResponse {
-    success: boolean;
-    message: string;
-    rol?: string;
-    userId?: string;
+// Obtener referencias a los elementos del DOM
+const loginForm = document.getElementById('loginForm') as HTMLFormElement;
+const emailInput = document.getElementById('email') as HTMLInputElement;
+const passwordInput = document.getElementById('password') as HTMLInputElement;
+const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
+const loadingSpinner = document.getElementById('loadingSpinner') as HTMLDivElement;
+const errorMessage = document.getElementById('errorMessage') as HTMLParagraphElement;
+
+
+interface LoginResponse {
+  success: boolean;
+  message: string;
+  rol?: string;
+  userId: string;  // Ya no es opcional porque sabemos que viene
+}
+
+const validateUser = async (email: string, password: string): Promise<LoginResponse> => {
+  try {
+    // 1. Primero hacemos el login
+    const loginResponse = await fetch('http://localhost:5000/api/login/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (!loginResponse.ok) {
+      throw new Error('Error al iniciar sesión. Verifica tus credenciales.');
+    }
+
+    const loginData = await loginResponse.json();
+    console.log('Respuesta del login:', loginData);
+
+    // 2. Si el login es exitoso, buscamos el médico por email
+    if (loginData.success) {
+      const medicoResponse = await fetch(`http://localhost:5000/api/medico/findByEmail/${email}`);
+      const medicoData = await medicoResponse.json();
+      console.log('Datos del médico:', medicoData);
+
+      if (medicoData.medico) {
+        // Usar el ID correcto del médico
+        return {
+          success: true,
+          message: loginData.message,
+          rol: loginData.rol,
+          userId: medicoData.medico._id // Usar el ID real del médico
+        };
+      }
+    }
+
+    return {
+      success: false,
+      message: 'No se pudo verificar la identidad del médico',
+      userId: '', // Valor vacío si no se encuentra el médico
+      rol: ''
+    };
+
+  } catch (error) {
+    console.error('Error en validateUser:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Error en la autenticación',
+      userId: '',
+      rol: ''
+    };
   }
+};
 
-  const loginForm = document.getElementById('loginForm') as HTMLFormElement;
-  const emailInput = document.getElementById('email') as HTMLInputElement;
-  const passwordInput = document.getElementById('password') as HTMLInputElement;
-  const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
-  const loadingSpinner = document.getElementById('loadingSpinner');
-
-  const emailError = document.getElementById('emailError');
-  const passwordError = document.getElementById('passwordError');
-  const errorMessage = document.getElementById('errorMessage');
-
+// Event listener del formulario
+if (loginForm && emailInput && passwordInput && submitBtn && loadingSpinner && errorMessage) {
   loginForm.addEventListener('submit', async (event) => {
     event.preventDefault();
 
@@ -75,8 +130,10 @@ import { setUserRole, setUserId } from '../auth/middleware';
     errorMessage.classList.add('hidden');
 
     const response = await validateUser(emailInput.value, passwordInput.value);
+    
+    console.log('Respuesta completa:', response); // Debug
 
-    if (response.success && response.rol && response.userId) {
+    if (response.success && response.userId) {
       console.log('Setting user role:', response.rol); // Debug
       console.log('Setting user ID:', response.userId); // Debug
       setUserRole(response.rol);
@@ -94,35 +151,5 @@ import { setUserRole, setUserId } from '../auth/middleware';
     submitBtn.disabled = false;
     loadingSpinner.classList.add('hidden');
   });
-
-  const validateUser = async (email: string, password: string): Promise<LoginResponse> => {
-  try {
-    const response = await fetch('http://localhost:5000/api/login/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Error al iniciar sesión. Verifica tus credenciales.');
-    }
-
-    const data = await response.json();
-
-    return {
-      success: data.message === 'Login exitoso',
-      message: data.message || 'Credenciales inválidas',
-      rol: data.rol,
-      userId: data.userId,
-    };
-  } catch (error) {
-    console.error('Error en validateUser:', error);
-    return {
-      success: false,
-      message: error instanceof Error ? error.message : 'Error en la autenticación',
-    };
-  }
-};
+}
 </script>

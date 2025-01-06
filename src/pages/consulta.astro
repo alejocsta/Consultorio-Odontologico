@@ -487,7 +487,10 @@ let consultaData = {
 
 async function cargarDatosCita() {
     try {
-        const citaId = consultaData.id;
+        const params = new URLSearchParams(window.location.search);
+        const citaId = params.get('id');
+        const motivoFromURL = params.get('motivo');
+
         if (!citaId) {
             throw new Error('No se proporcionó ID de cita');
         }
@@ -500,14 +503,28 @@ async function cargarDatosCita() {
         const cita = await response.json();
         console.log('Datos de la cita cargados:', cita);
         
+        // Usar el motivo de la URL si está disponible, si no, usar el de la cita
+        const motivoFinal = motivoFromURL || cita.motivo || '';
+        
         // Pre-llenar el motivo de consulta en el paso 1
         const motivoConsultaElement = document.getElementById('motivoConsulta');
-        if (motivoConsultaElement && cita.motivo) {
-            motivoConsultaElement.value = cita.motivo;
+        if (motivoConsultaElement) {
+            motivoConsultaElement.value = motivoFinal;
+            // Guardamos el motivo original en el objeto consultaData
+						console.log(motivoFinal);
+            consultaData.motivoOriginal = motivoFinal;
         }
 
-        // Guardamos los datos de la cita en el consultaData
-        consultaData.citaInfo = cita;
+        // Guardamos los datos de la cita en el consultaData, asegurándonos de mantener el motivo
+        consultaData.citaInfo = {
+            ...cita,
+            motivo: motivoFinal
+        };
+
+        console.log('Datos finales cargados:', {
+            motivoOriginal: consultaData.motivoOriginal,
+            citaInfo: consultaData.citaInfo
+        });
 
     } catch (error) {
         console.error('Error al cargar datos de la cita:', error);
@@ -564,8 +581,7 @@ async function cargarDatosCita() {
     recolectarDatosPaso(3);
 
     try {
-        // Asegurarnos de obtener el ID correcto del paciente
-				const pacienteId = consultaData.citaInfo.pacienteId.id || consultaData.citaInfo.pacienteId;
+        const pacienteId = consultaData.citaInfo.pacienteId.id || consultaData.citaInfo.pacienteId;
 
         const historiaClinicaData = {
             datosPersonalesMedicos: {
@@ -579,7 +595,7 @@ async function cargarDatosCita() {
                 alergias: consultaData.paso1.alergias || '',
                 diabetes: Boolean(consultaData.paso1.diabetes),
                 enfermedadTransmisionSexual: consultaData.paso1.enfermedadTransmisionSexual || '',
-                motivoConsulta: consultaData.paso1.motivoConsulta || ''
+                motivoConsulta: consultaData.motivoOriginal || consultaData.citaInfo.motivo || ''
             },
             antecedentesMedicosOdontologicos: {
                 consultoOdontologo: consultaData.paso2.consultaPrevia === 'si',
@@ -605,7 +621,7 @@ async function cargarDatosCita() {
                 higieneBucal: (consultaData.paso3.higieneBucal || 'bueno').toLowerCase()
             },
             aclaracionesFinalesMedico: consultaData.paso3.anotacionesMedico || '',
-            pacienteId: pacienteId // Usando el ID extraído correctamente
+            pacienteId: pacienteId
         };
 
         console.log('Datos a enviar:', historiaClinicaData);
@@ -623,19 +639,24 @@ async function cargarDatosCita() {
             throw new Error(errorData.message || 'Error al guardar la historia clínica');
         }
 
-        // Actualizar estado de la cita
+        // Actualizar estado de la cita asegurándose de mantener el motivo original
+        const citaUpdateData = {
+            estado: 'completada',
+            fecha: consultaData.citaInfo.fecha,
+            motivo: consultaData.motivoOriginal || consultaData.citaInfo.motivo, // Usar el motivo original guardado
+            medicoId: consultaData.citaInfo.medicoId._id || consultaData.citaInfo.medicoId,
+            pacienteId: pacienteId,
+            tratamientos: consultaData.citaInfo.tratamientos
+        };
+
+        console.log('Actualizando cita con:', citaUpdateData);
+
         const responseEstado = await fetch(`${BASE_URL}/citas/${consultaData.id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                estado: 'completada',
-                fecha: consultaData.citaInfo.fecha,
-                motivo: consultaData.citaInfo.motivo,
-                medicoId: consultaData.citaInfo.medicoId._id || consultaData.citaInfo.medicoId,
-                pacienteId: pacienteId
-            })
+            body: JSON.stringify(citaUpdateData)
         });
 
         if (!responseEstado.ok) {
@@ -649,7 +670,7 @@ async function cargarDatosCita() {
         console.error('Error detallado:', error);
         alert('Error al guardar la consulta: ' + error.message);
     }
-}
+	}
 
   // Event Listeners
   document.getElementById('volverBtn')?.addEventListener('click', (e) => {

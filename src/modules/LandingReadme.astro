@@ -91,130 +91,162 @@
     }
 }
 
-  async function loadData() {
-    try {
-      const response = await fetch(`${BASE_URL}/citas/hoy`);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      const consultasHoy = data.data;
+async function loadData() {
+  try {
+    const response = await fetch(`${BASE_URL}/citas/hoy`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    const consultasHoy = data.data;
+    console.log("Consultas de hoy: ", consultasHoy);
 
-      container.innerHTML = '';
+    container.innerHTML = '';
 
-      consultasHoy.forEach((consulta) => {
-        const card = document.createElement("div");
-        card.className = "p-6 bg-white border border-gray-200 rounded-lg shadow-sm dark:border-gray-700 dark:bg-gray-800 space-y-4";
+    for (const consulta of consultasHoy) {
+      const card = document.createElement("div");
+      card.className = "p-6 bg-white border border-gray-200 rounded-lg shadow-sm dark:border-gray-700 dark:bg-gray-800 space-y-4";
 
-        const mostrarBotonAtender = consulta.estado !== 'completada';
-        const mostrarBotonRecordatorio = consulta.estado !== 'completada';
+      const mostrarBotonAtender = consulta.estado !== 'completada';
+      const mostrarBotonRecordatorio = consulta.estado !== 'completada';
 
-        const botonAtenderHtml = mostrarBotonAtender ? `
-          <button 
-            onclick="handleAtenderClick('${consulta._id}')"
-            class="w-full px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
-            ${consulta.estado === 'en_proceso' ? 'Continuar' : 'Atender'}
-          </button>
-        ` : '';
+      const botonAtenderHtml = mostrarBotonAtender ? `
+        <button 
+          onclick="handleAtenderClick('${consulta._id}')"
+          class="w-full px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
+          ${consulta.estado === 'en_proceso' ? 'Continuar' : 'Atender'}
+        </button>
+      ` : '';
 
-				const botonRecordatorioHtml = mostrarBotonRecordatorio ? `
-    <button 
-        onclick="window.open('${getWhatsAppLink(
+      const botonRecordatorioHtml = mostrarBotonRecordatorio ? `
+        <button 
+          onclick="window.open('${getWhatsAppLink(
             consulta.pacienteId, 
             consulta.medicoId, 
             formatTime(consulta.fecha)
-        )}', '_blank')"
-        class="px-4 py-2 text-white bg-green-500 hover:bg-green-600 rounded-lg transition-colors"
-    >
-        Enviar Recordatorio
-    </button>
-` : '';
+          )}', '_blank')"
+          class="px-4 py-2 text-white bg-green-500 hover:bg-green-600 rounded-lg transition-colors"
+        >
+          Enviar Recordatorio
+        </button>
+      ` : '';
 
-        let tratamientosHtml = '';
-        if (Array.isArray(consulta.tratamientos)) {
-          tratamientosHtml = consulta.tratamientos.map((tratamiento) => `
-            <p><strong>Tratamiento:</strong> ${tratamiento.nombre}</p>
-          `).join('');
+      // Crear el contenedor principal de la tarjeta
+      card.innerHTML = `
+        <div class="space-y-4">
+          <div class="flex justify-between items-center gap-2">
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 truncate">
+              ${consulta.pacienteId.nombre}
+            </h3>
+            <span class="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+              ${formatTime(consulta.fecha)}
+            </span>
+          </div>
+          <div class="text-gray-600 dark:text-gray-300">
+            <p><strong>Médico:</strong> ${consulta.medicoId.nombre}</p>
+            <p><strong>Motivo:</strong> ${consulta.motivo}</p>
+          </div>
+        </div>
+      `;
+
+      // Crear y configurar el contenedor de tratamientos
+      const tratamientosContainer = document.createElement("div");
+      tratamientosContainer.style.display = "none";
+      tratamientosContainer.className = "mt-2 space-y-1 text-gray-600 dark:text-gray-300";
+      
+      // Configurar el botón de mostrar/ocultar tratamientos
+      const toggleTratamientosButton = document.createElement("button");
+      toggleTratamientosButton.textContent = "Mostrar tratamientos";
+      toggleTratamientosButton.className = "text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200 mt-2";
+      toggleTratamientosButton.addEventListener("click", () => {
+        if (tratamientosContainer.style.display === "none") {
+          tratamientosContainer.style.display = "block";
+          toggleTratamientosButton.textContent = "Ocultar tratamientos";
+        } else {
+          tratamientosContainer.style.display = "none";
+          toggleTratamientosButton.textContent = "Mostrar tratamientos";
         }
+      });
 
-        const tratamientosContainer = document.createElement("div");
-        tratamientosContainer.innerHTML = tratamientosHtml;
-        tratamientosContainer.style.display = "none";
+      // Cargar los tratamientos
+      if (Array.isArray(consulta.tratamientos) && consulta.tratamientos.length > 0) {
+        tratamientosContainer.innerHTML = '<p>Cargando tratamientos...</p>';
+        
+        const tratamientosPromises = consulta.tratamientos.map(async (tratamiento) => {
+          try {
+            // Si ya tenemos el nombre del tratamiento
+            if (tratamiento.nombre || tratamiento.nombreTratamiento) {
+              return `<p><strong>Tratamiento:</strong> ${tratamiento.nombre || tratamiento.nombreTratamiento}</p>`;
+            }
 
-        const toggleTratamientosButton = document.createElement("button");
-        toggleTratamientosButton.textContent = "Mostrar tratamientos";
-        toggleTratamientosButton.className = "text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200";
-        toggleTratamientosButton.addEventListener("click", () => {
-          if (tratamientosContainer.style.display === "none") {
-            tratamientosContainer.style.display = "block";
-            toggleTratamientosButton.textContent = "Ocultar tratamientos";
-          } else {
-            tratamientosContainer.style.display = "none";
-            toggleTratamientosButton.textContent = "Mostrar tratamientos";
+            // Si solo tenemos el ID, hacer la petición
+            const tratamientoId = typeof tratamiento === 'string' ? tratamiento : tratamiento._id;
+            const response = await fetch(`${BASE_URL}/tratamientos/findById/${tratamientoId}`);
+            
+            if (!response.ok) throw new Error('Error al cargar tratamiento');
+            
+            const data = await response.json();
+            return `<p><strong>Tratamiento:</strong> ${data.nombre || data.nombreTratamiento}</p>`;
+          } catch (error) {
+            console.error('Error al cargar tratamiento:', error);
+            return `<p><strong>Tratamiento:</strong> No disponible</p>`;
           }
         });
 
-				card.innerHTML = `
-  <div class="space-y-4">
-    <div class="flex justify-between items-center gap-2">
-      <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 truncate">
-        ${consulta.pacienteId.nombre}
-      </h3>
-      <span class="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
-        ${formatTime(consulta.fecha)}
-      </span>
-    </div>
-    <div class="text-gray-600 dark:text-gray-300">
-      <p><strong>Médico:</strong> ${consulta.medicoId.nombre}</p>
-      <p><strong>Motivo:</strong> ${consulta.motivo}</p>
-    </div>
-  </div>
-`;
-
-        const infoContainer = card.querySelector('.text-gray-600');
-        infoContainer.appendChild(toggleTratamientosButton);
-        infoContainer.appendChild(tratamientosContainer);
-
-        const actionsContainer = document.createElement('div');
-        actionsContainer.className = 'flex flex-col space-y-2';
-        actionsContainer.innerHTML = `
-          ${botonRecordatorioHtml}
-          ${botonAtenderHtml}
-        `;
-
-        card.appendChild(actionsContainer);
-
-        const estadoContainer = document.createElement('div');
-        estadoContainer.className = 'flex items-center justify-between pt-2';
-        estadoContainer.innerHTML = `
-          <span class="text-sm font-medium">Estado:</span>
-          <span class="px-3 py-1 rounded-full text-sm font-medium ${getEstadoColor(consulta.estado)}">
-            ${getEstadoTexto(consulta.estado)}
-          </span>
-        `;
-
-        card.appendChild(estadoContainer);
-        container.appendChild(card);
-      });
-
-      if (consultasHoy.length === 0) {
-        container.innerHTML = `
-          <div class="col-span-full text-center text-gray-500 dark:text-gray-400">
-            No hay consultas programadas para hoy
-          </div>
-        `;
+        // Esperar a que se resuelvan todas las promesas de tratamientos
+        const tratamientosResults = await Promise.all(tratamientosPromises);
+        tratamientosContainer.innerHTML = tratamientosResults.join('');
+      } else {
+        tratamientosContainer.innerHTML = '<p>No hay tratamientos asignados</p>';
       }
-    } catch (error) {
-      console.error("Error al cargar las consultas:", error);
+
+      // Agregar los elementos a la tarjeta
+      const infoContainer = card.querySelector('.text-gray-600');
+      infoContainer.appendChild(toggleTratamientosButton);
+      infoContainer.appendChild(tratamientosContainer);
+
+      // Crear y agregar el contenedor de acciones
+      const actionsContainer = document.createElement('div');
+      actionsContainer.className = 'flex flex-col space-y-2';
+      actionsContainer.innerHTML = `
+        ${botonRecordatorioHtml}
+        ${botonAtenderHtml}
+      `;
+      card.appendChild(actionsContainer);
+
+      // Crear y agregar el contenedor de estado
+      const estadoContainer = document.createElement('div');
+      estadoContainer.className = 'flex items-center justify-between pt-2';
+      estadoContainer.innerHTML = `
+        <span class="text-sm font-medium">Estado:</span>
+        <span class="px-3 py-1 rounded-full text-sm font-medium ${getEstadoColor(consulta.estado)}">
+          ${getEstadoTexto(consulta.estado)}
+        </span>
+      `;
+      card.appendChild(estadoContainer);
+
+      // Agregar la tarjeta al contenedor principal
+      container.appendChild(card);
+    }
+
+    if (consultasHoy.length === 0) {
       container.innerHTML = `
-        <div class="col-span-full text-center text-red-500">
-          Error al cargar las consultas: ${error.message}
+        <div class="col-span-full text-center text-gray-500 dark:text-gray-400">
+          No hay consultas programadas para hoy
         </div>
       `;
     }
+  } catch (error) {
+    console.error("Error al cargar las consultas:", error);
+    container.innerHTML = `
+      <div class="col-span-full text-center text-red-500">
+        Error al cargar las consultas: ${error.message}
+      </div>
+    `;
   }
+}
 
   loadData();
 </script>

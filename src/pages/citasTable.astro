@@ -597,24 +597,25 @@ select.classList.add(
     const form = e.target as HTMLFormElement;
     const formData = new FormData(form);
     
-    // Obtener los IDs de los tratamientos y formatearlos correctamente
+    // Obtener la cita actual para mantener su estado
+    const citaId = formData.get('id');
+    const citaActual = consultas.find(c => c._id === citaId);
+    
     const tratamientosSelects = form.querySelectorAll('select[name="tratamientos[]"]');
     const tratamientos = Array.from(tratamientosSelects)
       .map((select: HTMLSelectElement) => select.value)
       .filter(value => value !== '')
-      .map(id => ({ _id: id })); // Formatear cada ID como un objeto con _id
+      .map(id => ({ _id: id }));
     
     const citaData = {
-      _id: formData.get('id'),
+      _id: citaId,
       fecha: new Date(`${formData.get('diaConsulta')}T${formData.get('horaConsulta')}`).toISOString(),
       pacienteId: formData.get('nombrePaciente'),
       medicoId: formData.get('nombreMedico'),
       motivo: formData.get('problema'),
-      tratamientos: tratamientos, // Array de objetos con _id
-      estado: 'pendiente'
+      tratamientos: tratamientos,
+      estado: citaActual?.estado || 'pendiente' // Mantener el estado actual
     };
-
-    console.log('Datos a enviar:', citaData);
 
     if (!citaData.pacienteId || !citaData.medicoId || !citaData.motivo || !citaData.fecha) {
       throw new Error('Todos los campos son requeridos');
@@ -637,6 +638,11 @@ select.classList.add(
     await cargarConsultas();
     closeEditModal();
     showNotification('Cita actualizada exitosamente');
+    
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
+
   } catch (error: any) {
     console.error('Error completo:', error);
     showNotification(error.message || 'Error al actualizar la cita', 'error');

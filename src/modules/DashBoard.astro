@@ -5,38 +5,6 @@ import 'datatables.net';
 
 <div class="px-4 pt-6">
 	<div class="w-full bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
-		<div class="flex justify-end px-4 pt-4">
-			<button
-				id="dropdownButton"
-				data-dropdown-toggle="userDropdown"
-				class="inline-block text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:ring-4 focus:outline-none focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-1.5"
-				type="button"
-			>
-				<span class="sr-only">Img</span>
-				<svg
-					class="w-5 h-5"
-					aria-hidden="true"
-					xmlns="http://www.w3.org/2000/svg"
-					fill="currentColor"
-					viewBox="0 0 16 3"
-				>
-					<path d="M2 0a1.5 1.5 1 1 1 0 3 1.5 1.5 0 0 1 0-3Zm6.041 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM14 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Z"></path>
-				</svg>
-			</button>
-			<!-- Dropdown menu -->
-			<div id="userDropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600">
-				<div class="px-4 py-3 text-sm text-gray-900 dark:text-white">
-					<div id="dropdownUserName">Cargando...</div>
-					<div id="dropdownUserEmail" class="font-medium truncate">Cargando...</div>
-				</div>
-				<ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownButton">
-					<li>
-						<a href="#" id="logoutButton" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Cerrar sesión</a>
-					</li>
-				</ul>
-			</div>
-		</div>
-
 		<div class="flex flex-col md:flex-row justify-between items-center px-6 py-4">
 			<div class="w-full md:w-auto md:pr-8 pb-4 md:pb-0">
 				<img
@@ -171,7 +139,7 @@ import 'datatables.net';
 
       let endpoint = '';
       if (userRole === 'odontologo') {
-        endpoint = `http://localhost:5000/api/medico/findByUser/${userId}`;
+        endpoint = `http://localhost:5000/api/medico/findById/${userId}`;
       } else if (userRole === 'secretaria') {
         endpoint = `http://localhost:5000/api/secretaria/findByUser/${userId}`;
       } else {
@@ -201,43 +169,28 @@ import 'datatables.net';
         }
       };
 
-      // Actualizar todos los elementos
-      updateElement('dropdownUserName', userData.nombre);
-      updateElement('dropdownUserEmail', userData.email);
-      updateElement('userName', userData.nombre);
-      updateElement('userEmail', userData.email);
-      updateElement('userPhone', userData.celular);
+			updateElement('userName', userData.nombre);
+updateElement('userEmail', userData.email);
+updateElement('userPhone', userData.celular);
 
-      if (userRole === 'odontologo') {
-        ['especialidadContainer', 'matriculaContainer', 'medicButtons'].forEach(id => {
-          const element = document.getElementById(id);
-          if (element) {
-            element.classList.remove('hidden');
-            console.log(`Showed container: ${id}`);
-          }
-        });
+if (userRole === 'odontologo') {
+  ['especialidadContainer', 'matriculaContainer', 'medicButtons'].forEach(id => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.classList.remove('hidden');
+      console.log(`Showed container: ${id}`);
+    }
+  });
 
-        updateElement('userEspecialidad', userData.especialidad);
-        updateElement('userMatricula', userData.nMatricula);
+  updateElement('userEspecialidad', userData.especialidad);
+  updateElement('userMatricula', userData.nMatricula);
 
-				setupTables();
+  setupTables();
 
-				if (userData._id) {
-            localStorage.setItem('medicoId', userData._id);
-        }
-      }
-
-      // Configurar botón de logout
-      const logoutButton = document.getElementById('logoutButton');
-      if (logoutButton) {
-        logoutButton.addEventListener('click', (e) => {
-          e.preventDefault();
-          localStorage.removeItem('userId');
-          localStorage.removeItem('userRole');
-          window.location.href = '/login';
-        });
-      }
-
+  if (userData._id) {
+    localStorage.setItem('medicoId', userData._id);
+  }
+}
       console.log('Profile update completed successfully');
 
     } catch (error) {
@@ -283,33 +236,26 @@ import 'datatables.net';
 
 	async function cargarCitas() {
     try {
-        const medicoId = localStorage.getItem('medicoId');
+			const medicoId = localStorage.getItem('medicoId');
         console.log('Cargando citas para médico ID:', medicoId);
 
         const response = await fetch('http://localhost:5000/api/cita/todas');
         const data = await response.json();
         
-        // Verificar la estructura de la respuesta
-        console.log('Respuesta del servidor:', data);
-        
-        // Asegurarnos de que estamos trabajando con un array
         const citas = Array.isArray(data) ? data : data.citas || [];
         
         const citasTableBody = document.getElementById('citasTableBody');
         citasTableBody.innerHTML = '';
 
         // Filtrar por medicoId
-        const citasFiltradas = citas.filter(cita => {
-            console.log('Comparando cita.medicoId:', cita.medicoId, 'con medicoId:', medicoId);
-            return cita.medicoId === medicoId;
-        });
+        const citasFiltradas = citas.filter(cita => cita.medicoId === medicoId);
         
         console.log('Citas filtradas:', citasFiltradas);
 
         if (citasFiltradas.length === 0) {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td colspan="5" class="px-6 py-4 text-center">
+                <td colspan="6" class="px-6 py-4 text-center">
                     No hay citas programadas
                 </td>
             `;
@@ -335,6 +281,9 @@ import 'datatables.net';
                 'cancelada': 'bg-red-100 text-red-800'
             };
 
+            // Crear la URL con los parámetros codificados
+            const consultaUrl = `/consulta?id=${cita._id}&motivo=${encodeURIComponent(cita.motivo)}`;
+
             row.innerHTML = `
                 <td class="px-6 py-4">${fecha}</td>
                 <td class="px-6 py-4">${cita.pacienteId?.nombre || 'No disponible'}</td>
@@ -343,6 +292,14 @@ import 'datatables.net';
                     <span class="px-2 py-1 rounded-full text-xs ${estadoClasses[cita.estado] || ''}">${cita.estado}</span>
                 </td>
                 <td class="px-6 py-4">$${cita.monto || 0}</td>
+                <td class="px-6 py-4">
+                    ${cita.estado === 'pendiente' ? `
+                        <a href="${consultaUrl}"
+                           class="px-3 py-2 text-sm font-medium text-center text-white bg-green-600 rounded-lg hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300">
+                            Atender
+                        </a>
+                    ` : ''}
+                </td>
             `;
 
             citasTableBody.appendChild(row);
@@ -352,7 +309,7 @@ import 'datatables.net';
         const citasTableBody = document.getElementById('citasTableBody');
         citasTableBody.innerHTML = `
             <tr>
-                <td colspan="5" class="px-6 py-4 text-center text-red-500">
+                <td colspan="6" class="px-6 py-4 text-center text-red-500">
                     Error al cargar las citas
                 </td>
             </tr>
@@ -361,7 +318,7 @@ import 'datatables.net';
 }
 
 async function cargarPacientes() {
-    try {
+	try {
         const medicoId = localStorage.getItem('medicoId');
         console.log('Cargando pacientes para médico ID:', medicoId);
 
@@ -392,7 +349,7 @@ async function cargarPacientes() {
         }
 
         // Por cada paciente en las citas, buscamos sus datos
-        for (const pacienteId of pacientesIds) {
+  for (const pacienteId of pacientesIds) {
             try {
                 const pacienteResponse = await fetch(`http://localhost:5000/api/paciente/${pacienteId}`);
                 const paciente = await pacienteResponse.json();
