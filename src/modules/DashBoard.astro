@@ -123,81 +123,56 @@ import 'datatables.net';
 </div>
 
 <script is:inline>
-  window.addEventListener('load', async () => {
-    try {
-      const userId = localStorage.getItem('userId');
-      const userRole = localStorage.getItem('userRole');
+ // Corrección de updateElement y manejo de datos
+window.addEventListener('load', async () => {
+  try {
+    const userId = localStorage.getItem('userId');
+    const userRole = localStorage.getItem('userRole');
 
-      console.log('Initial load - userId:', userId);
-      console.log('Initial load - userRole:', userRole);
-
-      if (!userId || !userRole) {
-        console.error('No user data found in localStorage');
-        window.location.href = '/login';
-        return;
-      }
-
-      let endpoint = '';
-      if (userRole === 'odontologo') {
-        endpoint = `http://localhost:5000/api/medico/findById/${userId}`;
-      } else if (userRole === 'secretaria') {
-        endpoint = `http://localhost:5000/api/secretaria/findByUser/${userId}`;
-      } else {
-        throw new Error('Rol de usuario no válido');
-      }
-
-      console.log('Fetching from endpoint:', endpoint);
-
-      const response = await fetch(endpoint);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      // Extraer los datos del médico del objeto anidado
-      const userData = data.medico;
-      console.log('User data extracted:', userData);
-
-      // Función para actualizar elemento si existe
-      const updateElement = (id, value, defaultValue = 'No disponible') => {
-        const element = document.getElementById(id);
-        if (element) {
-          element.textContent = value || defaultValue;
-          console.log(`Updated ${id} with value:`, value || defaultValue);
-        } else {
-          console.warn(`Element with id ${id} not found`);
-        }
-      };
-
-			updateElement('userName', userData.nombre);
-updateElement('userEmail', userData.email);
-updateElement('userPhone', userData.celular);
-
-if (userRole === 'odontologo') {
-  ['especialidadContainer', 'matriculaContainer', 'medicButtons'].forEach(id => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.classList.remove('hidden');
-      console.log(`Showed container: ${id}`);
+    if (!userId || !userRole) {
+      window.location.href = '/login';
+      return;
     }
-  });
 
-  updateElement('userEspecialidad', userData.especialidad);
-  updateElement('userMatricula', userData.nMatricula);
+    let endpoint = '';
+    if (userRole === 'secretaria') {
+      endpoint = `http://localhost:5000/api/secretaria/buscarId/${userId}`;
+    }
 
-  setupTables();
+    const response = await fetch(endpoint);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    // Acceder directamente a los datos de la secretaria
+    const userData = data.secretaria || data;
 
-  if (userData._id) {
-    localStorage.setItem('medicoId', userData._id);
+    // Función corregida para actualizar elementos
+    const updateElement = (id, value) => {
+      const element = document.getElementById(id);
+      if (element) {
+        element.textContent = value || 'No disponible';
+      }
+    };
+
+    // Actualizar los elementos con los datos de la secretaria
+    updateElement('userName', userData.nombre);
+    updateElement('userEmail', userData.email);
+    updateElement('userPhone', userData.celular);
+
+  } catch (error) {
+    console.error('Error loading user data:', error);
+    // Mostrar mensaje de error al usuario
+    const errorElements = ['userName', 'userEmail', 'userPhone'];
+    errorElements.forEach(id => {
+      const element = document.getElementById(id);
+      if (element) {
+        element.textContent = 'Error al cargar datos';
+      }
+    });
   }
-}
-      console.log('Profile update completed successfully');
-
-    } catch (error) {
-      console.error('Error loading user data:', error);
-      updateElement('userName', 'Error al cargar datos');
-    }
-  });
+});
 
   // Script de diagnóstico
   setTimeout(() => {

@@ -103,7 +103,7 @@ const validateUser = async (email: string, password: string): Promise<LoginRespo
         }
       } 
       else if (loginData.rol === 'secretaria') {
-        userResponse = await fetch(`http://localhost:5000/api/secretaria/buscar/email/${email}`);
+        userResponse = await fetch(`http://localhost:5000/api/secretaria/buscar/${email}`);
         const secretariaData = await userResponse.json();
         
         if (secretariaData.secretaria) {

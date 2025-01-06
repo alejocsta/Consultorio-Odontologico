@@ -132,7 +132,7 @@ import ColorModeSwitcher from '../components/ColorModeSwitcher.astro';
     if (userRole === 'odontologo') {
       endpoint = `${BASE_URL}/medico/findById/${userId}`;
     } else if (userRole === 'secretaria') {
-      endpoint = `${BASE_URL}/secretaria/buscar/${userId}`;
+      endpoint = `${BASE_URL}/secretaria/buscarId/${userId}`;
     } else {
       console.log('Rol no reconocido:', userRole);
       return;
