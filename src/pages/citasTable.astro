@@ -74,6 +74,7 @@ interface Consulta {
               <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">Médico</th>
               <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">Problema</th>
               <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">Estado</th>
+							<th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">Ver Más</th>
               <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">Acciones</th>
             </tr>
           </thead>
@@ -267,47 +268,72 @@ interface Consulta {
     }
   }
 
-  function renderizarTabla() {
-    const tbody = document.getElementById('consultasTableBody');
-    if (!tbody) return;
+	function renderizarTabla() {
+  const tbody = document.getElementById('consultasTableBody');
+  if (!tbody) return;
 
-    tbody.innerHTML = consultasFiltradas.map(consulta => {
-      console.log('Consulta a renderizar:', consulta);
-      return `
-        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-          <td class="whitespace-nowrap px-6 py-4">${new Date(consulta.fecha).toLocaleDateString() || ''}</td>
-          <td class="whitespace-nowrap px-6 py-4">${new Date(consulta.fecha).toLocaleTimeString() || ''}</td>
-          <td class="whitespace-nowrap px-6 py-4">${consulta.pacienteId?.nombre || ''}</td>
-          <td class="whitespace-nowrap px-6 py-4">${consulta.medicoId?.nombre || ''}</td>
-          <td class="whitespace-nowrap px-6 py-4">${consulta.motivo || ''}</td>
-          <td class="whitespace-nowrap px-6 py-4">
-            <span class="rounded-full px-2 py-1 text-xs font-semibold ${getEstadoClase(consulta.estado)}">
-              ${consulta.estado || ''}
-            </span>
-          </td>
-          <td class="px-6 py-4">
-            <div class="flex space-x-2">
-              <button onclick="openEditModal(${JSON.stringify(consulta).replace(/"/g, '&quot;')})"
-                    class="edit-button p-2 text-blue-600 hover:text-blue-700">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                </svg>
-              </button>
-              <button onclick="eliminarCita('${consulta._id}')"
-                    class="delete-button p-2 text-red-600 hover:text-red-700">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path d="M3 6h18"/>
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
-                  <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                </svg>
-              </button>
-            </div>
-          </td>
-        </tr>
-      `;
-    }).join('');
+  // Agregar th en el thead
+  const thead = document.querySelector('thead tr');
+  if (thead && !thead.querySelector('th:last-child')) {
+    const th = document.createElement('th');
+    th.className = 'px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300';
+    th.textContent = 'Ver más';
+    thead.appendChild(th);
   }
+
+  tbody.innerHTML = consultasFiltradas.map(consulta => `
+    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+      <td class="whitespace-nowrap px-6 py-4">${new Date(consulta.fecha).toLocaleDateString() || ''}</td>
+      <td class="whitespace-nowrap px-6 py-4">${new Date(consulta.fecha).toLocaleTimeString() || ''}</td>
+      <td class="whitespace-nowrap px-6 py-4">${consulta.pacienteId?.nombre || ''}</td>
+      <td class="whitespace-nowrap px-6 py-4">${consulta.medicoId?.nombre || ''}</td>
+      <td class="whitespace-nowrap px-6 py-4">${consulta.motivo || ''}</td>
+      <td class="whitespace-nowrap px-6 py-4">
+        <span class="rounded-full px-2 py-1 text-xs font-semibold ${getEstadoClase(consulta.estado)}">
+          ${consulta.estado || ''}
+        </span>
+				</td>
+				<td class="px-6 py-4">
+					${consulta.estado === 'completada' ? `
+						<div class="relative group">
+							<button class="text-blue-600 hover:text-blue-700">
+								<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+								</svg>
+							</button>
+							<div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 dark:bg-gray-800">
+								<a href="/historial-clinico/${consulta._id}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700">
+									Ver Historial Clínico
+								</a>
+								<a href="/odontograma/${consulta._id}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700">
+									Ver Odontograma
+								</a>
+							</div>
+						</div>
+					` : ''}
+				</td>
+      <td class="px-6 py-4">
+        <div class="flex space-x-2">
+          <button onclick="openEditModal(${JSON.stringify(consulta).replace(/"/g, '&quot;')})"
+                class="edit-button p-2 text-blue-600 hover:text-blue-700">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+          </button>
+          <button onclick="eliminarCita('${consulta._id}')"
+                class="delete-button p-2 text-red-600 hover:text-red-700">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M3 6h18"/>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+              <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
 
   function filtrarConsultas() {
     const searchTerm = (document.getElementById('searchInput') as HTMLInputElement)?.value.toLowerCase();
