@@ -128,72 +128,68 @@ async function actualizarTabla() {
   if (!tbody) return;
 
   try {
-    const response = await fetch(`${BASE_URL}/paciente`);
-    const data = await response.json();
-    const pacientes = data.pacientes;
+		const response = await fetch(`${BASE_URL}/paciente`);
+const data = await response.json();
+const pacientes = data.pacientes;
+console.log('Datos de pacientes:', pacientes);
 
-    tbody.innerHTML = pacientes.map(row => `
-      <tr 
-        class="hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-150"
-        data-name="${row.nombre || ''}"
-        data-dni="${row.dni || ''}"
-        data-telefono="${row.telefono || ''}"
-        data-mail="${row.mail || ''}"
-      >
-        <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">${row.dni || ''}</td>
-        <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">${row.nombre || ''}</td>
-        <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">${row.mail || ''}</td>
-        <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
-          <span>${row.areaCode || ''}</span><span>${row.telefono || ''}</span>
-        </td>
-        <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
-          <div class="flex space-x-2">
-            <a href="/historial-clinico/${row.id}" 
-               class="group relative p-2 text-blue-600 hover:text-blue-800 transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <span class="absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:block bg-gray-900 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
-                Historial Clínico
-              </span>
-            </a>
-            
-            <a href="/odontograma/${row.id}"
-               class="group relative p-2 text-blue-600 hover:text-blue-800 transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m0-15C9.5 4.5 7 3 4.5 3c0 8 0 16 0 16C7 19 9.5 17.5 12 17.5m0-13c2.5-1.5 5-3 7.5-3 0 8 0 16 0 16-2.5 0-5-1.5-7.5-1.5" />
-              </svg>
-              <span class="absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:block bg-gray-900 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
-                Odontograma
-              </span>
-            </a>
-          </div>
-        </td>
-        <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
-          <div class="flex space-x-2">
-            <button 
-              class="edit-button p-2 text-blue-600 hover:text-blue-700 focus:outline-none"
-              title="Editar"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-              </svg>
-            </button>
-            <button 
-              class="delete-button p-2 text-red-600 hover:text-red-700 focus:outline-none"
-              title="Eliminar"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M3 6h18"/>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
-                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-              </svg>
-            </button>
-          </div>
-        </td>
-      </tr>
-    `).join('');
+tbody.innerHTML = pacientes.map(row => `
+  <tr class="hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-150"
+      data-name="${row.nombre || ''}"
+      data-dni="${row.dni || ''}"
+      data-telefono="${row.telefono || ''}"
+      data-mail="${row.mail || ''}">
+    <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">${row.dni || ''}</td>
+    <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">${row.nombre || ''}</td>
+    <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">${row.mail || ''}</td>
+    <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+      <span>${row.areaCode || ''}</span><span>${row.telefono || ''}</span>
+    </td>
+    <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+      <div class="flex space-x-2">
+        <button onclick="mostrarHistoriaClinica('${row.historiaClinica}')"
+                class="group relative p-2 text-blue-600 hover:text-blue-800 transition-colors"
+                title="Historia Clínica">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <span class="absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:block bg-gray-900 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
+            Historia Clínica
+          </span>
+        </button>
+        <button onclick="window.location.href='/odontograma/${row.id}'"
+                class="group relative p-2 text-blue-600 hover:text-blue-800 transition-colors"
+                title="Odontograma">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m0-15C9.5 4.5 7 3 4.5 3c0 8 0 16 0 16C7 19 9.5 17.5 12 17.5m0-13c2.5-1.5 5-3 7.5-3 0 8 0 16 0 16-2.5 0-5-1.5-7.5-1.5" />
+          </svg>
+          <span class="absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:block bg-gray-900 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
+            Odontograma
+          </span>
+        </button>
+      </div>
+    </td>
+    <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+      <div class="flex space-x-2">
+        <button class="edit-button p-2 text-blue-600 hover:text-blue-700 focus:outline-none"
+                title="Editar">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+        </button>
+        <button class="delete-button p-2 text-red-600 hover:text-red-700 focus:outline-none"
+                title="Eliminar">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 6h18"/>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+          </svg>
+        </button>
+      </div>
+    </td>
+  </tr>
+`).join('');
 
   } catch (error) {
     console.error('Error al obtener pacientes:', error);
@@ -201,6 +197,62 @@ async function actualizarTabla() {
   }
 }
 
+window.mostrarHistoriaClinica = async function(historiaClinicaId) {
+  try {
+    const hcResponse = await fetch(`${BASE_URL}/historiaClinica/getHc/${historiaClinicaId}`);
+    if (!hcResponse.ok) {
+      throw new Error('Error al obtener la historia clínica');
+    }
+
+    const hcData = await hcResponse.json();
+    if (!hcData || !hcData.historiaClinica) {
+      showNotification('No se encontró la historia clínica', 'error');
+      return;
+    }
+
+    const hc = hcData.historiaClinica;
+    const formatBoolean = (value) => value ? 'Sí' : 'No';
+
+    // Función helper para actualizar campos
+    const updateField = (id, value, defaultValue = 'No especificado') => {
+      const element = document.getElementById(id);
+      if (element) {
+        element.textContent = value ?? defaultValue;
+      }
+    };
+
+    // Actualizar datos personales médicos
+    updateField('hc-enfermedades', hc.datosPersonalesMedicos?.enfermedades);
+    updateField('hc-tratamientoActual', hc.datosPersonalesMedicos?.tratamientoActual);
+    updateField('hc-medicamentos', hc.datosPersonalesMedicos?.medicamentosRegulares);
+    updateField('hc-enfInfectoInfecciosa', hc.datosPersonalesMedicos?.enfermedadInfectoInfecciosa);
+    updateField('hc-fuma', formatBoolean(hc.datosPersonalesMedicos?.fuma));
+    updateField('hc-embarazo', formatBoolean(hc.datosPersonalesMedicos?.embarazo));
+    updateField('hc-alergias', hc.datosPersonalesMedicos?.alergias);
+    updateField('hc-diabetes', formatBoolean(hc.datosPersonalesMedicos?.diabetes));
+    updateField('hc-motivoConsulta', hc.datosPersonalesMedicos?.motivoConsulta);
+
+    // Actualizar antecedentes
+    updateField('hc-consultoOdontologo', formatBoolean(hc.antecedentesMedicosOdontologicos?.consultoOdontologo));
+    updateField('hc-tratamientoOdontologico', hc.antecedentesMedicosOdontologicos?.tratamientoOdontologico?.descripcion);
+    updateField('hc-dolor', hc.antecedentesMedicosOdontologicos?.dolor);
+    updateField('hc-fracturaDiente', hc.antecedentesMedicosOdontologicos?.fracturaDiente);
+    updateField('hc-dificultadMasticar', formatBoolean(hc.antecedentesMedicosOdontologicos?.dificultadMasticar));
+    updateField('hc-dificultadAbrirBoca', formatBoolean(hc.antecedentesMedicosOdontologicos?.dificultadAbrirBoca));
+
+    // Actualizar estado actual
+    updateField('hc-anormalidadBoca', hc.estadoActual?.anormalidadBoca);
+    updateField('hc-sangradoEncias', formatBoolean(hc.estadoActual?.sangradoEncias));
+    updateField('hc-hinchazonCara', formatBoolean(hc.estadoActual?.hinchazonCara));
+    updateField('hc-higieneBucal', hc.estadoActual?.higieneBucal);
+    updateField('hc-aclaraciones', hc.aclaracionesFinalesMedico);
+
+    document.getElementById('historiaClinicaModal').classList.remove('hidden');
+  } catch (error) {
+    console.error('Error completo:', error);
+    showNotification('Error al cargar la historia clínica', 'error');
+  }
+};
 
 // Manejadores de Modales
 const openEditModal = async (patient) => {
@@ -245,6 +297,13 @@ const closeCreateModal = () => {
     document.getElementById('createForm')?.reset();
   }
 };
+
+const closeHCModal = document.querySelector('.close-hc-modal');
+if (closeHCModal) {
+  closeHCModal.addEventListener('click', () => {
+    document.getElementById('historiaClinicaModal').classList.add('hidden');
+  });
+}
 
 // Manejo de Formularios
 const handleFormSubmit = async (endpoint, formData, onSuccess) => {
@@ -691,5 +750,63 @@ document.addEventListener('DOMContentLoaded', () => {
       </form>
     </div>
   </div>
+
+	<div id="historiaClinicaModal" class="fixed inset-0 flex items-center justify-center z-50 hidden">
+		<div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+		<div class="relative bg-slate-50 dark:bg-slate-800 rounded-xl shadow-2xl p-8 w-3/4 max-h-[90vh] overflow-y-auto border border-slate-200 dark:border-slate-700">
+			<div class="flex justify-between items-center mb-6">
+				<h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100">Historia Clínica</h2>
+				<button class="close-hc-modal p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+					<svg class="w-6 h-6 text-slate-600 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+					</svg>
+				</button>
+			</div>
+			
+			<div id="historiaClinicaContent" class="space-y-8">
+				<div class="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-sm border border-slate-200 dark:border-slate-700">
+					<h3 class="text-xl font-semibold mb-4 text-slate-900 dark:text-slate-100">Datos Personales Médicos</h3>
+					<div class="grid grid-cols-2 gap-6 text-slate-700 dark:text-slate-300">
+						<div><span class="font-medium text-slate-900 dark:text-slate-100">Enfermedades:</span> <span id="hc-enfermedades"></span></div>
+						<div><span class="font-medium text-slate-900 dark:text-slate-100">Tratamiento Actual:</span> <span id="hc-tratamientoActual"></span></div>
+						<div><span class="font-medium text-slate-900 dark:text-slate-100">Medicamentos:</span> <span id="hc-medicamentos"></span></div>
+						<div><span class="font-medium text-slate-900 dark:text-slate-100">Enfermedad Infecto-Infecciosa:</span> <span id="hc-enfInfectoInfecciosa"></span></div>
+						<div><span class="font-medium text-slate-900 dark:text-slate-100">Fuma:</span> <span id="hc-fuma"></span></div>
+						<div><span class="font-medium text-slate-900 dark:text-slate-100">Embarazo:</span> <span id="hc-embarazo"></span></div>
+						<div><span class="font-medium text-slate-900 dark:text-slate-100">Alergias:</span> <span id="hc-alergias"></span></div>
+						<div><span class="font-medium text-slate-900 dark:text-slate-100">Diabetes:</span> <span id="hc-diabetes"></span></div>
+						<div><span class="font-medium text-slate-900 dark:text-slate-100">Motivo de Consulta:</span> <span id="hc-motivoConsulta"></span></div>
+					</div>
+				</div>
+	
+				<div class="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-sm border border-slate-200 dark:border-slate-700">
+					<h3 class="text-xl font-semibold mb-4 text-slate-900 dark:text-slate-100">Antecedentes Médicos Odontológicos</h3>
+					<div class="grid grid-cols-2 gap-6 text-slate-700 dark:text-slate-300">
+						<div><span class="font-medium text-slate-900 dark:text-slate-100">Consultó Odontólogo:</span> <span id="hc-consultoOdontologo"></span></div>
+						<div><span class="font-medium text-slate-900 dark:text-slate-100">Tratamiento Odontológico:</span> <span id="hc-tratamientoOdontologico"></span></div>
+						<div><span class="font-medium text-slate-900 dark:text-slate-100">Dolor:</span> <span id="hc-dolor"></span></div>
+						<div><span class="font-medium text-slate-900 dark:text-slate-100">Fractura de Diente:</span> <span id="hc-fracturaDiente"></span></div>
+						<div><span class="font-medium text-slate-900 dark:text-slate-100">Dificultad para Masticar:</span> <span id="hc-dificultadMasticar"></span></div>
+						<div><span class="font-medium text-slate-900 dark:text-slate-100">Dificultad para Abrir la Boca:</span> <span id="hc-dificultadAbrirBoca"></span></div>
+					</div>
+				</div>
+	
+				<div class="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-sm border border-slate-200 dark:border-slate-700">
+					<h3 class="text-xl font-semibold mb-4 text-slate-900 dark:text-slate-100">Estado Actual</h3>
+					<div class="grid grid-cols-2 gap-6 text-slate-700 dark:text-slate-300">
+						<div><span class="font-medium text-slate-900 dark:text-slate-100">Anormalidad en Boca:</span> <span id="hc-anormalidadBoca"></span></div>
+						<div><span class="font-medium text-slate-900 dark:text-slate-100">Sangrado de Encías:</span> <span id="hc-sangradoEncias"></span></div>
+						<div><span class="font-medium text-slate-900 dark:text-slate-100">Hinchazón en la Cara:</span> <span id="hc-hinchazonCara"></span></div>
+						<div><span class="font-medium text-slate-900 dark:text-slate-100">Higiene Bucal:</span> <span id="hc-higieneBucal"></span></div>
+					</div>
+				</div>
+	
+				<div class="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-sm border border-slate-200 dark:border-slate-700">
+					<h3 class="text-xl font-semibold mb-4 text-slate-900 dark:text-slate-100">Aclaraciones Finales del Médico</h3>
+					<p id="hc-aclaraciones" class="text-slate-700 dark:text-slate-300"></p>
+				</div>
+			</div>
+		</div>
+	</div>
 </LayoutCommon>
 </LayoutProtected>
