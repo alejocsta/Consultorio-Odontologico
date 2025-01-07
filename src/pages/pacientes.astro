@@ -205,6 +205,7 @@ window.mostrarHistoriaClinica = async function(historiaClinicaId) {
     }
 
     const hcData = await hcResponse.json();
+		console.log('Datos recibidos de la API:', hcData);
     if (!hcData || !hcData.historiaClinica) {
       showNotification('No se encontró la historia clínica', 'error');
       return;
