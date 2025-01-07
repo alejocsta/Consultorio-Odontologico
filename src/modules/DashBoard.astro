@@ -9,7 +9,7 @@ import 'datatables.net';
 			<div class="w-full md:w-auto md:pr-8 pb-4 md:pb-0">
 				<img
 					class="w-48 h-48 rounded-full shadow-lg mx-auto"
-					src="/src/assets/flowbite-logo.svg"
+					src="/src/assets/logo.png"
 					alt="Profile image"
 				/>
 			</div>
@@ -86,6 +86,7 @@ import 'datatables.net';
 									<th class="px-6 py-3">Motivo</th>
 									<th class="px-6 py-3">Estado</th>
 									<th class="px-6 py-3">Monto</th>
+									<th class="px-6 py-3">Atender</th>
 								</tr>
 							</thead>
 							<tbody id="citasTableBody">
@@ -123,265 +124,336 @@ import 'datatables.net';
 </div>
 
 <script is:inline>
- // Corrección de updateElement y manejo de datos
-window.addEventListener('load', async () => {
+	// Constantes globales
+	const BASE_URL = 'http://localhost:5000/api';
+	
+	// Cargar datos del perfil
+	window.addEventListener('load', async () => {
+		try {
+			const userId = localStorage.getItem('userId');
+			const userRole = localStorage.getItem('userRole');
+	
+			if (!userId || !userRole) {
+				window.location.href = '/login';
+				return;
+			}
+	
+			let endpoint = '';
+			if (userRole === 'secretaria') {
+				endpoint = `${BASE_URL}/secretaria/buscarId/${userId}`;
+			} else if (userRole === 'odontologo') {
+				endpoint = `${BASE_URL}/medico/findById/${userId}`;
+				
+				const especialidadContainer = document.getElementById('especialidadContainer');
+				const matriculaContainer = document.getElementById('matriculaContainer');
+				
+				if (especialidadContainer) especialidadContainer.classList.remove('hidden');
+				if (matriculaContainer) matriculaContainer.classList.remove('hidden');
+			}
+	
+			console.log('Endpoint:', endpoint);
+			console.log('UserRole:', userRole);
+			console.log('UserId:', userId);
+	
+			const response = await fetch(endpoint);
+			if (!response.ok) {
+				throw new Error(`HTTP error! status: ${response.status}`);
+			}
+			
+			const data = await response.json();
+			console.log('Data received:', data);
+	
+			const userData = userRole === 'secretaria' ? 
+				data.secretaria : 
+				(data.medico || data);
+	
+			const updateElement = (id, value) => {
+				const element = document.getElementById(id);
+				if (element) {
+					element.textContent = value || 'No disponible';
+				} else {
+					console.log(`Elemento con id ${id} no encontrado`);
+				}
+			};
+	
+			updateElement('userName', userData.nombre);
+			updateElement('userEmail', userData.email);
+			updateElement('userPhone', userData.celular || userData.telefono);
+	
+			if (userRole === 'odontologo') {
+				updateElement('userEspecialidad', userData.especialidad);
+				updateElement('userMatricula', userData.nMatricula);
+				setupTables();
+			}
+	
+		} catch (error) {
+			console.error('Error loading user data:', error);
+			console.error('Error details:', error.message);
+			
+			const userRole = localStorage.getItem('userRole');
+			
+			const errorElements = ['userName', 'userEmail', 'userPhone'];
+			if (userRole === 'odontologo') {
+				errorElements.push('userEspecialidad', 'userMatricula');
+			}
+			errorElements.forEach(id => {
+				const element = document.getElementById(id);
+				if (element) {
+					element.textContent = 'Error al cargar datos';
+				}
+			});
+		}
+	});
+	
+	function setupTables() {
+		const citasButton = document.getElementById('citasButton');
+		const pacientesButton = document.getElementById('pacientesButton');
+		const citasTable = document.getElementById('citasTable');
+		const pacientesTable = document.getElementById('pacientesTable');
+		let citasDataTable, pacientesDataTable;
+	
+		citasButton.addEventListener('click', () => {
+			pacientesTable.classList.add('hidden');
+			citasTable.classList.remove('hidden');
+			cargarCitas();
+		});
+	
+		pacientesButton.addEventListener('click', () => {
+			citasTable.classList.add('hidden');
+			pacientesTable.classList.remove('hidden');
+			cargarPacientes();
+		});
+	
+		// Cargar citas por defecto
+		citasButton.click();
+	}
+	
+	async function cargarCitas() {
+  const citasTableBody = document.getElementById('citasTableBody');
   try {
     const userId = localStorage.getItem('userId');
-    const userRole = localStorage.getItem('userRole');
+    const response = await fetch(`${BASE_URL}/citas/todas`);
+    if (!response.ok) throw new Error('Error al cargar citas');
+    
+    const data = await response.json();
+    // Filtrar citas por médico
+    const citasFiltradas = data.filter(cita => 
+      cita.medicoId?._id === userId || cita.medicoId === userId
+    );
 
-    if (!userId || !userRole) {
-      window.location.href = '/login';
+    citasTableBody.innerHTML = '';
+
+    if (citasFiltradas.length === 0) {
+      citasTableBody.innerHTML = `
+        <tr>
+          <td colspan="5" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+            No hay citas programadas
+          </td>
+        </tr>
+      `;
       return;
     }
 
-    let endpoint = '';
-    if (userRole === 'secretaria') {
-      endpoint = `http://localhost:5000/api/secretaria/buscarId/${userId}`;
-    }
+    citasFiltradas.forEach(cita => {
+      const row = document.createElement('tr');
+      row.className = 'bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700';
+      
+      const fecha = new Date(cita.fecha).toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
 
-    const response = await fetch(endpoint);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    // Acceder directamente a los datos de la secretaria
-    const userData = data.secretaria || data;
+			const consultaUrl = `/consulta?id=${cita._id}`;
 
-    // Función corregida para actualizar elementos
-    const updateElement = (id, value) => {
-      const element = document.getElementById(id);
-      if (element) {
-        element.textContent = value || 'No disponible';
-      }
-    };
+      const estadoClasses = {
+        'en_proceso': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+        'completada': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+        'pendiente': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+      };
 
-    // Actualizar los elementos con los datos de la secretaria
-    updateElement('userName', userData.nombre);
-    updateElement('userEmail', userData.email);
-    updateElement('userPhone', userData.celular);
+      row.innerHTML = `
+        <td class="px-6 py-4">${fecha}</td>
+        <td class="px-6 py-4">${cita.pacienteId?.nombre || 'No disponible'}</td>
+        <td class="px-6 py-4">${cita.motivo}</td>
+        <td class="px-6 py-4">
+          <span class="px-2 py-1 rounded-full text-xs font-medium ${estadoClasses[cita.estado] || ''}">${cita.estado}</span>
+        </td>
+        <td class="px-6 py-4">$${cita.monto || 0}</td>
+				<td class="px-6 py-4">
+          ${cita.estado === 'pendiente' ? `
+            <a href="${consultaUrl}"
+               class="px-3 py-2 text-sm font-medium text-center text-white bg-green-600 rounded-lg hover:bg-green-700 focus:ring-4 focus:ring-green-300 dark:focus:ring-green-800 transition-colors">
+                Atender
+            </a>
+          ` : '-'}
+        </td>
+      `;
 
+      citasTableBody.appendChild(row);
+    });
   } catch (error) {
-    console.error('Error loading user data:', error);
-    // Mostrar mensaje de error al usuario
-    const errorElements = ['userName', 'userEmail', 'userPhone'];
-    errorElements.forEach(id => {
-      const element = document.getElementById(id);
-      if (element) {
-        element.textContent = 'Error al cargar datos';
-      }
-    });
+    console.error('Error al cargar citas:', error);
+    citasTableBody.innerHTML = `
+      <tr>
+        <td colspan="5" class="px-6 py-4 text-center text-red-500">
+          Error al cargar las citas: ${error.message}
+        </td>
+      </tr>
+    `;
   }
-});
-
-  // Script de diagnóstico
-  setTimeout(() => {
-    console.log('=== Diagnóstico de elementos DOM ===');
-    ['userName', 'userEmail', 'userPhone', 'userEspecialidad', 'userMatricula'].forEach(id => {
-      const element = document.getElementById(id);
-      console.log(`${id}:`, element ? 'Existe' : 'No existe');
-      if (element) {
-        console.log(`${id} contenido:`, element.textContent);
-      }
-    });
-  }, 2000);
-
-	function setupTables() {
-    const citasButton = document.getElementById('citasButton');
-    const pacientesButton = document.getElementById('pacientesButton');
-    const citasTable = document.getElementById('citasTable');
-    const pacientesTable = document.getElementById('pacientesTable');
-
-    citasButton.addEventListener('click', async () => {
-      pacientesTable.classList.add('hidden');
-      citasTable.classList.toggle('hidden');
-      if (!citasTable.classList.contains('hidden')) {
-        await cargarCitas();
-      }
-    });
-
-    pacientesButton.addEventListener('click', async () => {
-      citasTable.classList.add('hidden');
-      pacientesTable.classList.toggle('hidden');
-      if (!pacientesTable.classList.contains('hidden')) {
-        await cargarPacientes();
-      }
-    });
-  }
-
-	async function cargarCitas() {
-    try {
-			const medicoId = localStorage.getItem('medicoId');
-        console.log('Cargando citas para médico ID:', medicoId);
-
-        const response = await fetch('http://localhost:5000/api/cita/todas');
-        const data = await response.json();
-        
-        const citas = Array.isArray(data) ? data : data.citas || [];
-        
-        const citasTableBody = document.getElementById('citasTableBody');
-        citasTableBody.innerHTML = '';
-
-        // Filtrar por medicoId
-        const citasFiltradas = citas.filter(cita => cita.medicoId === medicoId);
-        
-        console.log('Citas filtradas:', citasFiltradas);
-
-        if (citasFiltradas.length === 0) {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td colspan="6" class="px-6 py-4 text-center">
-                    No hay citas programadas
-                </td>
-            `;
-            citasTableBody.appendChild(row);
-            return;
-        }
-
-        citasFiltradas.forEach(cita => {
-            const row = document.createElement('tr');
-            row.className = 'bg-white border-b dark:bg-gray-800 dark:border-gray-700';
-            
-            const fecha = new Date(cita.fecha).toLocaleDateString('es-ES', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-
-            const estadoClasses = {
-                'pendiente': 'bg-yellow-100 text-yellow-800',
-                'completada': 'bg-green-100 text-green-800',
-                'cancelada': 'bg-red-100 text-red-800'
-            };
-
-            // Crear la URL con los parámetros codificados
-            const consultaUrl = `/consulta?id=${cita._id}&motivo=${encodeURIComponent(cita.motivo)}`;
-
-            row.innerHTML = `
-                <td class="px-6 py-4">${fecha}</td>
-                <td class="px-6 py-4">${cita.pacienteId?.nombre || 'No disponible'}</td>
-                <td class="px-6 py-4">${cita.motivo}</td>
-                <td class="px-6 py-4">
-                    <span class="px-2 py-1 rounded-full text-xs ${estadoClasses[cita.estado] || ''}">${cita.estado}</span>
-                </td>
-                <td class="px-6 py-4">$${cita.monto || 0}</td>
-                <td class="px-6 py-4">
-                    ${cita.estado === 'pendiente' ? `
-                        <a href="${consultaUrl}"
-                           class="px-3 py-2 text-sm font-medium text-center text-white bg-green-600 rounded-lg hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300">
-                            Atender
-                        </a>
-                    ` : ''}
-                </td>
-            `;
-
-            citasTableBody.appendChild(row);
-        });
-    } catch (error) {
-        console.error('Error al cargar citas:', error);
-        const citasTableBody = document.getElementById('citasTableBody');
-        citasTableBody.innerHTML = `
-            <tr>
-                <td colspan="6" class="px-6 py-4 text-center text-red-500">
-                    Error al cargar las citas
-                </td>
-            </tr>
-        `;
-    }
 }
 
 async function cargarPacientes() {
-	try {
-        const medicoId = localStorage.getItem('medicoId');
-        console.log('Cargando pacientes para médico ID:', medicoId);
+  const pacientesTableBody = document.getElementById('pacientesTableBody');
+  try {
+    const userId = localStorage.getItem('userId');
+    
+    // Primero obtenemos todas las citas
+    const citasResponse = await fetch(`${BASE_URL}/citas/todas`);
+    const citasData = await citasResponse.json();
+    
+    // Filtramos las citas del médico
+    const citasDelMedico = citasData.filter(cita => 
+      cita.medicoId?._id === userId || cita.medicoId === userId
+    );
 
-        // Primero obtenemos todas las citas del médico
-        const citasResponse = await fetch('http://localhost:5000/api/citas/todas');
-        const citasData = await citasResponse.json();
-        const citas = Array.isArray(citasData) ? citasData : citasData.citas || [];
+    // Obtenemos IDs únicos de pacientes
+    const pacientesIds = [...new Set(citasDelMedico.map(cita => 
+      cita.pacienteId?._id || cita.pacienteId
+    ))];
 
-        // Filtramos las citas del médico
-        const citasDelMedico = citas.filter(cita => cita.medicoId === medicoId);
+    pacientesTableBody.innerHTML = '';
 
-        // Obtenemos los IDs únicos de pacientes
-        const pacientesIds = [...new Set(citasDelMedico.map(cita => cita.pacienteId))];
-        console.log('IDs de pacientes únicos:', pacientesIds);
-
-        const pacientesTableBody = document.getElementById('pacientesTableBody');
-        pacientesTableBody.innerHTML = '';
-
-        if (pacientesIds.length === 0) {
-            pacientesTableBody.innerHTML = `
-                <tr>
-                    <td colspan="4" class="px-6 py-4 text-center">
-                        No hay pacientes atendidos
-                    </td>
-                </tr>
-            `;
-            return;
-        }
-
-        // Por cada paciente en las citas, buscamos sus datos
-  for (const pacienteId of pacientesIds) {
-            try {
-                const pacienteResponse = await fetch(`http://localhost:5000/api/paciente/${pacienteId}`);
-                const paciente = await pacienteResponse.json();
-                
-                const row = document.createElement('tr');
-                row.className = 'bg-white border-b dark:bg-gray-800 dark:border-gray-700';
-                
-                row.innerHTML = `
-                    <td class="px-6 py-4">${paciente.nombre || 'No disponible'}</td>
-                    <td class="px-6 py-4">${paciente.dni || 'No disponible'}</td>
-                    <td class="px-6 py-4">${paciente.areaCode || ''} ${paciente.telefono || 'No disponible'}</td>
-                    <td class="px-6 py-4">${paciente.mail || 'No disponible'}</td>
-                `;
-
-                pacientesTableBody.appendChild(row);
-            } catch (error) {
-                console.error('Error al cargar datos del paciente:', error);
-            }
-        }
-    } catch (error) {
-        console.error('Error al cargar pacientes:', error);
-        const pacientesTableBody = document.getElementById('pacientesTableBody');
-        pacientesTableBody.innerHTML = `
-            <tr>
-                <td colspan="4" class="px-6 py-4 text-center text-red-500">
-                    Error al cargar los pacientes
-                </td>
-            </tr>
-        `;
+    if (pacientesIds.length === 0) {
+      pacientesTableBody.innerHTML = `
+        <tr>
+          <td colspan="4" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+            No hay pacientes atendidos
+          </td>
+        </tr>
+      `;
+      return;
     }
+
+    // Obtener datos de cada paciente
+    for (const pacienteId of pacientesIds) {
+      try {
+        const pacienteResponse = await fetch(`${BASE_URL}/paciente/findById/${pacienteId}`);
+        if (!pacienteResponse.ok) continue;
+        
+        const { paciente } = await pacienteResponse.json();
+        
+        const row = document.createElement('tr');
+        row.className = 'bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700';
+        
+        row.innerHTML = `
+          <td class="px-6 py-4">${paciente.nombre || 'No disponible'}</td>
+          <td class="px-6 py-4">${paciente.dni || 'No disponible'}</td>
+          <td class="px-6 py-4">${paciente.areaCode || ''} ${paciente.telefono || 'No disponible'}</td>
+          <td class="px-6 py-4">${paciente.mail || 'No disponible'}</td>
+        `;
+
+        pacientesTableBody.appendChild(row);
+      } catch (error) {
+        console.error('Error al cargar datos del paciente:', error);
+      }
+    }
+  } catch (error) {
+    console.error('Error al cargar pacientes:', error);
+    pacientesTableBody.innerHTML = `
+      <tr>
+        <td colspan="4" class="px-6 py-4 text-center text-red-500">
+          Error al cargar los pacientes: ${error.message}
+        </td>
+      </tr>
+    `;
+  }
 }
-</script>
-
-<style is:global>
-	/* chart styles */
-	.apexcharts-tooltip {
-		@apply bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-0 rounded-lg shadow-lg !important;
-	}
-
-	.apexcharts-tooltip .apexcharts-tooltip-title {
-		@apply py-2 px-4 bg-gray-100 dark:bg-gray-600 border-b border-gray-200 dark:border-gray-500 !important;
-	}
-
-	.apexcharts-xaxistooltip {
-		@apply text-gray-500 border-0 bg-white dark:bg-gray-700 dark:text-gray-300 rounded-lg shadow-lg !important;
-	}
-
-	.apexcharts-tooltip .apexcharts-tooltip-text-y-value {
-		@apply dark:text-white;
-	}
-
-	.apexcharts-xaxistooltip-text {
-		@apply font-medium text-sm !important;
-	}
-
-	.apexcharts-xaxistooltip:before,
-	.apexcharts-xaxistooltip:after {
-		@apply border-0 !important;
-	}
-</style>
+	
+	// Script de diagnóstico
+	setTimeout(() => {
+		console.log('=== Diagnóstico de elementos DOM ===');
+		['userName', 'userEmail', 'userPhone', 'userEspecialidad', 'userMatricula'].forEach(id => {
+			const element = document.getElementById(id);
+			console.log(`${id}:`, element ? 'Existe' : 'No existe');
+			if (element) {
+				console.log(`${id} contenido:`, element.textContent);
+			}
+		});
+	}, 2000);
+	</script>
+	
+	<style is:global>
+		/* Estilos generales */
+		.table-container {
+			@apply overflow-x-auto shadow-md sm:rounded-lg;
+		}
+	
+		/* Estilos para las tablas */
+		table {
+			@apply w-full text-sm text-left;
+		}
+	
+		/* Estilos para los encabezados de tabla */
+		thead {
+			@apply text-xs uppercase;
+		}
+	
+		/* Estilos para las celdas */
+		td, th {
+			@apply px-6 py-4;
+		}
+	
+		/* Estilos para las filas al pasar el mouse */
+		tr:hover {
+			@apply transition-colors duration-200;
+		}
+	
+		/* Estilos para los botones */
+		button {
+			@apply transition-colors duration-200;
+		}
+	
+		/* Estilos para los estados */
+		.estado-badge {
+			@apply px-2 py-1 rounded-full text-xs font-medium;
+		}
+	
+		/* Estilos para los mensajes de error y estado vacío */
+		.empty-message {
+			@apply text-center py-4 text-gray-500 dark:text-gray-400;
+		}
+	
+		.error-message {
+			@apply text-center py-4 text-red-500;
+		}
+	
+		/* Estilos para el modo oscuro */
+		.dark .table-container {
+			@apply bg-gray-800 border-gray-700;
+		}
+	
+		.dark td {
+			@apply text-gray-400;
+		}
+	
+		.dark th {
+			@apply text-gray-400 bg-gray-700;
+		}
+	
+		/* Estilos para las notificaciones */
+		.notification {
+			@apply fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 text-white transition-opacity duration-300;
+		}
+	
+		.notification.success {
+			@apply bg-green-500;
+		}
+	
+		.notification.error {
+			@apply bg-red-500;
+		}
+	</style>

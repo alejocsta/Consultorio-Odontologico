@@ -221,6 +221,7 @@ window.mostrarHistoriaClinica = async function(historiaClinicaId) {
         element.textContent = value ?? defaultValue;
       }
     };
+    
 
     // Actualizar datos personales médicos
     updateField('hc-enfermedades', hc.datosPersonalesMedicos?.enfermedades);
@@ -236,7 +237,7 @@ window.mostrarHistoriaClinica = async function(historiaClinicaId) {
     // Actualizar antecedentes
     updateField('hc-consultoOdontologo', formatBoolean(hc.antecedentesMedicosOdontologicos?.consultoOdontologo));
     updateField('hc-tratamientoOdontologico', hc.antecedentesMedicosOdontologicos?.tratamientoOdontologico?.descripcion);
-    updateField('hc-dolor', hc.antecedentesMedicosOdontologicos?.dolor);
+    updateField('hc-dolor', formatearDolor(hc.antecedentesMedicosOdontologicos?.dolor));
     updateField('hc-fracturaDiente', hc.antecedentesMedicosOdontologicos?.fracturaDiente);
     updateField('hc-dificultadMasticar', formatBoolean(hc.antecedentesMedicosOdontologicos?.dificultadMasticar));
     updateField('hc-dificultadAbrirBoca', formatBoolean(hc.antecedentesMedicosOdontologicos?.dificultadAbrirBoca));
@@ -273,6 +274,37 @@ const openEditModal = async (patient) => {
   }
 };
 
+const formatearDolor = (dolorStr) => {
+  try {
+    const dolor = JSON.parse(dolorStr);
+    const parts = [];
+    
+    if (dolor.rango) parts.push(`Intensidad: ${dolor.rango}`);
+    if (dolor.tipo) parts.push(`Tipo: ${dolor.tipo}`);
+    
+    if (dolor.caracteristicas && dolor.caracteristicas.length > 0) {
+      parts.push(`Características: ${dolor.caracteristicas.join(', ')}`);
+    }
+    
+    if (dolor.sensibilidad && dolor.sensibilidad.length > 0) {
+      parts.push(`Sensibilidad: ${dolor.sensibilidad.join(', ')}`);
+    }
+    
+    if (dolor.localizacion) {
+      // Formatear la localización para que sea más legible
+      const localizacion = dolor.localizacion
+        .replace(/([A-Z])/g, ' $1') // Agrega espacio antes de cada mayúscula
+        .toLowerCase()
+        .replace(/^./, str => str.toUpperCase()); // Capitaliza la primera letra
+      parts.push(`Localización: ${localizacion}`);
+    }
+    
+    return parts.join('. ');
+  } catch (e) {
+    return dolorStr || 'No especificado';
+  }
+};
+
 const closeEditModal = () => {
   state.modals.edit.isOpen = false;
   state.modals.edit.selectedPatient = null;
@@ -299,12 +331,11 @@ const closeCreateModal = () => {
   }
 };
 
-const closeHCModal = document.querySelector('.close-hc-modal');
-if (closeHCModal) {
-  closeHCModal.addEventListener('click', () => {
+document.addEventListener('click', (e) => {
+  if (e.target.closest('.close-hc-modal')) {
     document.getElementById('historiaClinicaModal').classList.add('hidden');
-  });
-}
+  }
+});
 
 // Manejo de Formularios
 const handleFormSubmit = async (endpoint, formData, onSuccess) => {

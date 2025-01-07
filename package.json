@@ -42,6 +42,7 @@
 		"apexcharts": "^3.37.2",
 		"astro": "^5.1.1",
 		"datatables.net": "^2.1.8",
+		"flatpickr": "^4.6.13",
 		"flowbite": "^2.1.1",
 		"flowbite-typography": "^1.0.3",
 		"jsonwebtoken": "^9.0.2",
