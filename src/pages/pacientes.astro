@@ -2,9 +2,13 @@
 import LayoutCommon from "../app/LayoutCommon.astro";
 import LayoutProtected from "../app/LayoutProtected.astro";
 import consultas from '../data/pacientes.json';
----
+import { validatePatient } from '../lib/utils/validatePatient';
+import { showNotification } from '../lib/utils/notifications';
+---	
 
-<script define:vars={{ consultas }}>
+
+<script define:vars={{ consultas, validatePatient }}>
+
 const BASE_URL = 'http://localhost:5000/api';
 
 // Estado y Variables Globales
@@ -18,22 +22,8 @@ const state = {
 let pacientes = [...consultas];
 let pacientesFiltrados = [...pacientes];
 
-// Validaciones
-const validatePatient = (patient) => {
-  const errors = [];
-  const dniRegex = /^[0-9]{8}$/;
-  const phoneRegex = /^\d{6,14}$/;
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  if (!patient.nombre.trim()) errors.push('El nombre es requerido');
-  if (!dniRegex.test(patient.dni)) errors.push('DNI inválido (8 números)');
-  if (!emailRegex.test(patient.mail)) errors.push('Email inválido');
-  if (!phoneRegex.test(patient.telefono)) errors.push('Teléfono inválido (6 a 14 dígitos)');
-
-  return errors;
-};
-
-// Mostrar notificaciones
+//Notificaciones
 const showNotification = (message, type = 'success') => {
   const existingNotification = document.querySelector('.notification');
   if (existingNotification) existingNotification.remove();
@@ -383,10 +373,25 @@ const handleFormSubmit = async (endpoint, formData, onSuccess) => {
 
 const handleDelete = async (dni, nombre, row, button) => {
   try {
-    button.disabled = true;
-    button.textContent = 'Eliminando...';
+    // Primero obtener el ID del paciente usando el DNI
+    const findResponse = await fetch(`${BASE_URL}/paciente/findByDni/${dni}`, {
+      method: 'GET',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Origin': 'http://localhost:4321'
+      }
+    });
 
-    const response = await fetch(`${BASE_URL}/paciente/deleteByName/${nombre}`, {
+    if (!findResponse.ok) {
+      const errorData = await findResponse.json();
+      throw new Error(errorData.message || `Error del servidor: ${findResponse.status}`);
+    }
+
+    const findResult = await findResponse.json();
+    const pacienteId = findResult.paciente.id;
+
+    // Ahora sí eliminar usando el ID
+    const deleteResponse = await fetch(`${BASE_URL}/paciente/deleteById/${pacienteId}`, {
       method: 'DELETE',
       headers: { 
         'Content-Type': 'application/json',
@@ -394,11 +399,14 @@ const handleDelete = async (dni, nombre, row, button) => {
       }
     });
 
-    if (!response.ok) {
-      throw new Error(`Error del servidor: ${response.status}`);
+    // Importante: Primero obtener el cuerpo de la respuesta
+    const result = await deleteResponse.json();
+
+    // Luego verificar si la respuesta no fue exitosa
+    if (!deleteResponse.ok) {
+      throw new Error(result.message || `Error del servidor: ${deleteResponse.status}`);
     }
 
-    const result = await response.json();
     if (result.status === 'success') {
       showNotification('Paciente eliminado correctamente');
       row.remove();
@@ -406,10 +414,18 @@ const handleDelete = async (dni, nombre, row, button) => {
       throw new Error(result.message || 'Error al eliminar el paciente');
     }
   } catch (error) {
+    // Asegurarse de mostrar el mensaje de error específico del backend
     showNotification(error.message, 'error');
     if (row.parentNode) {
       button.disabled = false;
-      button.textContent = 'Eliminar';
+      // Restaurar el botón a su estado original
+      button.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 6h18"/>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+          <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+        </svg>
+      `;
     }
   }
 };
