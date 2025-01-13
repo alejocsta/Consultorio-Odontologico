@@ -89,6 +89,8 @@ import LayoutCommon from '../app/LayoutCommon.astro';
 </LayoutCommon>
 
 <script>
+const BASE_URL = 'https://consultorio-odontologico-backend-production-b1c8.up.railway.app/api';
+
 // Obtener referencias a elementos del DOM
 const form = document.getElementById('signupForm');
 const rolSelect = document.getElementById('rol');
@@ -288,7 +290,7 @@ form.addEventListener('submit', async (e) => {
 
     console.log('Enviando datos de usuario:', userData);
 
-    const userResponse = await fetch('http://localhost:5000/api/login/registro', {
+    const userResponse = await fetch(`${BASE_URL}/login/registro`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -312,7 +314,7 @@ form.addEventListener('submit', async (e) => {
 
       console.log('Enviando datos de secretaria:', secretariaData);
 
-      const secretariaResponse = await fetch('http://localhost:5000/api/secretaria/create', {
+      const secretariaResponse = await fetch(`${BASE_URL}/secretaria/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -337,7 +339,7 @@ form.addEventListener('submit', async (e) => {
 
       console.log('Enviando datos de médico:', medicoData);
 
-      const medicoResponse = await fetch('http://localhost:5000/api/medico/create', {
+      const medicoResponse = await fetch(`${BASE_URL}/api/medico/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

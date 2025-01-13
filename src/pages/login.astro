@@ -48,6 +48,8 @@ import { setUserRole, setUserId } from '../auth/middleware';
 </LayoutCommon>
 
 <script>
+const BASE_URL = 'https://consultorio-odontologico-backend-production-b1c8.up.railway.app/api';
+
 //imports
 import { setUserRole, setUserId } from '../auth/middleware'
 
@@ -90,7 +92,7 @@ const validateUser = async (email: string, password: string): Promise<LoginRespo
       let userResponse;
       
       if (loginData.rol === 'odontologo') {
-        userResponse = await fetch(`http://localhost:5000/api/medico/findByEmail/${email}`);
+        userResponse = await fetch(`${BASE_URL}/medico/findByEmail/${email}`);
         const medicoData = await userResponse.json();
         
         if (medicoData.medico) {
@@ -103,7 +105,7 @@ const validateUser = async (email: string, password: string): Promise<LoginRespo
         }
       } 
       else if (loginData.rol === 'secretaria') {
-        userResponse = await fetch(`http://localhost:5000/api/secretaria/buscar/${email}`);
+        userResponse = await fetch(`${BASE_URL}/secretaria/buscar/${email}`);
         const secretariaData = await userResponse.json();
         
         if (secretariaData.secretaria) {

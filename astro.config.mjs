@@ -7,10 +7,12 @@ const DEV_PORT = 2121;
 
 // https://astro.build/config
 export default defineConfig({
-	stie: 'https://alejocsta.github.io',
-	base: `/Consultorio-Odontologico-FRONTEND`,
+	site: process.env.CI
+		? 'https://themesberg.github.io'
+		: `http://localhost:${DEV_PORT}`,
+	base: process.env.CI ? '/flowbite-astro-admin-dashboard' : undefined,
 
-	output: 'server',
+	// output: 'server',
 
 	/* Like Vercel, Netlify,… Mimicking for dev. server */
 	// trailingSlash: 'always',

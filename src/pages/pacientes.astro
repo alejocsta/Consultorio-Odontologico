@@ -2,14 +2,12 @@
 import LayoutCommon from "../app/LayoutCommon.astro";
 import LayoutProtected from "../app/LayoutProtected.astro";
 import consultas from '../data/pacientes.json';
-import { validatePatient } from '../lib/utils/validatePatient';
-import { showNotification } from '../lib/utils/notifications';
 ---	
 
 
-<script define:vars={{ consultas, validatePatient }}>
+<script define:vars={{ consultas }}>
 
-const BASE_URL = 'http://localhost:5000/api';
+const BASE_URL = 'https://consultorio-odontologico-backend-production-b1c8.up.railway.app/api';
 
 // Estado y Variables Globales
 const state = {
@@ -22,6 +20,21 @@ const state = {
 let pacientes = [...consultas];
 let pacientesFiltrados = [...pacientes];
 
+
+// Validaciones
+const validatePatient = (patient) => {
+  const errors = [];
+  const dniRegex = /^[0-9]{8}$/;
+  const phoneRegex = /^\d{6,14}$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (!patient.nombre.trim()) errors.push('El nombre es requerido');
+  if (!dniRegex.test(patient.dni)) errors.push('DNI inválido (8 números)');
+  if (!emailRegex.test(patient.mail)) errors.push('Email inválido');
+  if (!phoneRegex.test(patient.telefono)) errors.push('Teléfono inválido (6 a 14 dígitos)');
+
+  return errors;
+};
 
 //Notificaciones
 const showNotification = (message, type = 'success') => {
